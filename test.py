@@ -14,7 +14,7 @@ def extractImagesFromVideo(path):
         ret, frame = cap.read()
         if ret == False:
             break
-        fName = os.path.basename(path) +  '_' + str(i) +'.jpg'
+        fName = os.path.basename(path) +  '_' + str(i)
         #cv2.imwrite(r'C:\\Users\\212574830\\Desktop\\Project symmetry\\Images\\' + os.path.basename(path) + str(i) + '.jpg',frame)
         images[fName] = frame
         i+=1
@@ -47,7 +47,11 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 
-extractImagesFromVideo(r'C:\Users\212574830\Desktop\Project symmetry\Videos\Movement sense video\TMD05_MS.mp4')
+circleDrawingSpec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1, color=(0,255,0))
+
+filePath = r'C:\Users\212574830\Desktop\Project symmetry\Videos\Movement sense video\N08_02_MS.mp4' #N05_01_MS.mp4, TMD05_MS.mp4, N08_02_MS.mp4
+
+extractImagesFromVideo(filePath)
 
 # Preview the images.
 for name, image in images.items():
@@ -55,7 +59,7 @@ for name, image in images.items():
   resize_and_show(image)
 
 with mp_face_mesh.FaceMesh(
-    static_image_mode=True,
+    static_image_mode=False,        #Was True, Boolean indicating if the images it processes should be treated as unrelated images (True) or as a video stream (False)
     max_num_faces=2,
     min_detection_confidence=0.5) as face_mesh:
   for name, image in images.items():
@@ -67,20 +71,32 @@ with mp_face_mesh.FaceMesh(
     if not results.multi_face_landmarks:
       continue
     annotated_image = image.copy()
+
+    #create image landmarks output folder
+    OutPath = r'C:\\Users\\212574830\\Desktop\\Project symmetry\\Images\\' + os.path.basename(filePath)
+    os.makedirs(OutPath,exist_ok=True)
+
     for face_landmarks in results.multi_face_landmarks:
-      mp_drawing.draw_landmarks(
+
+        #Draw Mesh
+        if(0):
+            mp_drawing.draw_landmarks(
+            image=annotated_image,
+            landmark_list=face_landmarks,
+            connections=mp_face_mesh.FACEMESH_TESSELATION,
+            landmark_drawing_spec=None,
+            connection_drawing_spec=mp_drawing_styles
+            .get_default_face_mesh_tesselation_style())
+
+
+        mp_drawing.draw_landmarks(
           image=annotated_image,
           landmark_list=face_landmarks,
-          connections=mp_face_mesh.FACEMESH_TESSELATION,
-          landmark_drawing_spec=None,
-          connection_drawing_spec=mp_drawing_styles
-          .get_default_face_mesh_tesselation_style())
-      mp_drawing.draw_landmarks(
-          image=annotated_image,
-          landmark_list=face_landmarks,
-          connections=mp_face_mesh.FACEMESH_CONTOURS,
-          landmark_drawing_spec=None,
+          connections=mp_face_mesh.FACEMESH_LIPS ,
+          landmark_drawing_spec=circleDrawingSpec,#None,
           connection_drawing_spec=mp_drawing_styles
           .get_default_face_mesh_contours_style())
-    resize_and_show(annotated_image, True)
+
+        resize_and_show(annotated_image)
+        cv2.imwrite(OutPath +'\\' + name + '.jpg',annotated_image)
 
