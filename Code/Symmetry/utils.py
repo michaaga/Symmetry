@@ -115,7 +115,7 @@ def getFilteredLandmarkData(landmarks, filterSet):
 
   return keypoints
 
-#debug: test method to check position of landmark points.
+#debug: test method to check position of landmark points..
 def printLandmarkPoints(landmarkImagePoints, img):
   font = cv2.FONT_HERSHEY_SIMPLEX
   for x in landmarkImagePoints.items():
