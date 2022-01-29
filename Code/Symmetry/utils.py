@@ -6,12 +6,12 @@ import math
 
 DESIRED_HEIGHT = 1080
 DESIRED_WIDTH = 1920
+IMAGE_LOAD_SKIP_CNT = 20
 
 #Extract images from video and save to disk (optional)
 def extractImagesFromVideo(path, images, saveToDisk = False):
 
   i = 0 #Skip frams to shorten debugging.
-  imagesSkipCount = 20
 
   #create output folder if not exists
   outPath = os.path.join(path, 'Images')
@@ -33,7 +33,7 @@ def extractImagesFromVideo(path, images, saveToDisk = False):
               break
 
           i+=1
-          if(i%imagesSkipCount != 0):
+          if(i % IMAGE_LOAD_SKIP_CNT != 0):
             continue
 
           fName = os.path.splitext(filename)[0] +  '_' + str(i)
@@ -78,14 +78,14 @@ def resize_and_show(image, showImages = False):
         cv2.destroyAllWindows()
 
 #add caption on an image
-def addTextOnImage(image, text):
+def addTextOnImage(image, text, pos):
   font = cv2.FONT_HERSHEY_SIMPLEX
-  return cv2.putText(image, text, (10,450), font, 3, (0, 255, 0), 2, cv2.LINE_AA)    
+  return cv2.putText(image, text, pos, font, 1, (0, 255, 0), 2, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
-def drawLineOnImage(image, src, dest):
+def drawLineOnImage(image, src, dest, color = (0,0,0)):
   height, width, channels = image.shape
-  image = cv2.line(image, ((int)(src['X']), (int)(src['Y'])), ((int)(dest['X']), (int)(dest['Y'])), random_color(), 3)
+  image = cv2.line(image, ((int)(src['X']), (int)(src['Y'])), ((int)(dest['X']), (int)(dest['Y'])), color, 2)
 
 #find points center of mass
 def centerMass(points):
@@ -104,7 +104,7 @@ def centerMass(points):
 
 #convert point to image coordinates
 def convertPoint(landmarks, idx):
-  point = { 'X': landmarks.landmark[idx].x * DESIRED_HEIGHT, 'Y': landmarks.landmark[idx].y * DESIRED_WIDTH }
+  point = { 'X': (int)(landmarks.landmark[idx].x * DESIRED_HEIGHT), 'Y': (int)(landmarks.landmark[idx].y * DESIRED_WIDTH) }
   return point
 
 #get relevant landmarks only (image coordinates)
@@ -126,3 +126,30 @@ def annotatePoint(img, pt, text = '', color = (0,0,0)):
   font = cv2.FONT_HERSHEY_SIMPLEX
   img = cv2.drawMarker(img, ((int)(pt['X']), (int)(pt['Y'])) , color, 0, 30)
   img = cv2.putText(img, text, ((int)(pt['X']), (int)(pt['Y'])), font, 0.7, color, 1, cv2.LINE_AA)  
+
+def angleBetweenPoints(pt1, pt2):
+    x1 = pt1['X']
+    y1 = pt1['Y']
+    x2 = pt2['X']
+    y2 = pt2['Y']
+    inner_product = x1*x2 + y1*y2
+    len1 = math.hypot(x1, y1)
+    len2 = math.hypot(x2, y2)
+    return math.degrees(math.acos(inner_product/(len1*len2)))
+
+    """Get the angle of this line with the horizontal axis."""
+
+    """Get the angle of this line with the horizontal axis."""
+
+    """Get the angle of this line with the horizontal axis."""
+
+#Get the angle of this line with the horizontal axis.
+def get_angle(p1, p2):
+
+    dx = p2['X'] - p1['X']
+    dy = p2['Y']- p1['Y']
+    theta = math.atan2(dy, dx)
+    angle = math.degrees(theta)  # angle is in (-180, 180]
+    if angle < 0:
+        angle = 360 + angle
+    return (int)(angle)

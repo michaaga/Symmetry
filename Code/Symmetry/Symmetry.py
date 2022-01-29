@@ -1,4 +1,6 @@
+from xmlrpc.client import MAXINT
 import cv2
+from cv2 import minEnclosingTriangle
 import utils
 import random
 import math
@@ -60,14 +62,14 @@ def calcSD(p0, p1, centerPoint, dst):
   p0_ = avgPts(p0, reflectedPoint)
   p1_ = reflectPoint(centerPoint, dst, p0_)
 
-  if(inRange(p0_) and inRange(p1_)):
-    #draw the symmetry line testpoints.
-    utils.annotatePoint(img, p0, str(idx), (0, 0, 0))
-    utils.annotatePoint(img, p1, str(idx+1), (0, 0, 0))
+#   if(inRange(p0_) and inRange(p1_)):
+#     #draw the symmetry line testpoints.
+#     utils.annotatePoint(img, p0, str(idx), (0, 0, 0))
+#     utils.annotatePoint(img, p1, str(idx+1), (0, 0, 0))
 
-    utils.annotatePoint(img, p0_, str(idx) + '*', (0, 0, 255))
-    utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
-    idx +=2
+#     utils.annotatePoint(img, p0_, str(idx) + '*', (0, 0, 255))
+#     utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
+#     idx +=2
 
   return pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_) 
 
@@ -92,6 +94,35 @@ def checkLineSD(center, dst, points):
             totalSD += calcSD(leftItem, rightItem, center, dst)
 
     return totalSD / len(points)
+
+def checkAllSymmetryLines(img, center, points):
+    lineLength = 100
+    minVal = 2**64
+    minAngle = 0
+
+    #run  10 lines across the circle and check for minimal SD
+    for angle in range(0, 360, 1):
+
+        #calculate Dst point to angle
+        dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
+        dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
+        dst = {'X': dstX, 'Y': dstY}
+
+        #draw Symmetry line
+        #img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
+
+        #calculate Symmetry line SD
+        val = checkLineSD(center, dst, points)
+        #print("Angle: " + str(angle) + ", Value:" + str(val))
+        
+        #look for the min
+        if(val < minVal):
+            minVal = val
+            minAngle = angle #save the min result corresponding angle
+            #utils.resize_and_show(img, True)
+            #print("Min Value:" + str(minAngle) + '\n')
+
+    return minVal, minAngle
 
 #degugging code
 #**************
@@ -215,4 +246,4 @@ def testCheckLineSD():
 
 #testCalcSD()
 #testReflectPoint()
-testCheckLineSD()
+#testCheckLineSD()
