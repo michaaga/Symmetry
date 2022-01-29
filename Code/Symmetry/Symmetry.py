@@ -1,187 +1,86 @@
-import mediapipe as mp
 import cv2
-import os
 import utils
+import random
 
-images = {} #hold the images dictionary
+#brief Reflect point p along line through points p0 and p1
+#param p point to reflect
+#param p0 first point for reflection line
+#param p1 second point for reflection line
+#return object
+def  reflectPoint(p0, p1, p):
+    #var dx, dy, a, b, x, y;
+    dx = p1['X'] - p0['X']
+    dy = p1['Y'] - p0['Y']
+    a = (dx * dx - dy * dy) / (dx * dx + dy * dy)
+    b = 2 * dx * dy / (dx * dx + dy * dy)
+    x = round(a * (p['X'] - p0['X']) + b * (p['Y'] - p0['Y']) + p0['X'])
+    y = round(b * (p['X'] - p0['X']) - a * (p['Y'] - p0['Y']) + p0['Y'])
 
-LIPS_LANDMARKS = [ 61,
-                  146,
-                  91,
-                  181,
-                  84,
-                  17,
-                  314,
-                  405,
-                  321,
-                  375,
-                  291,
-                  185,
-                  40,
-                  39,
-                  37,
-                  0,
-                  267,
-                  269,
-                  270,
-                  409,
-                  78,
-                  95,
-                  88,
-                  178,
-                  87,
-                  14,
-                  317,
-                  402,
-                  318,
-                  324,
-                  308,
-                  191,
-                  80,
-                  81,
-                  82,
-                  13,
-                  312,
-                  311,
-                  310,
-                  415]
+    return { 'X':x, 'Y':y }
+    
+def testFunc():
+    img = cv2.imread('C:\\GIT\\Symmetry\\TestImages\\N12_02_MS_20.jpg')
+    
+    p1 = {'X': 100.0, 'Y': 100.0}
+    p2 = {'X': 200.0, 'Y': 200.0}
 
-MY_FACE_CONNECTIONS = frozenset([
-    # Lips.
-    (61, 146),
-    (146, 91),
-    (91, 181),
-    (181, 84),
-    (84, 17),
-    (17, 314),
-    (314, 405),
-    (405, 321),
-    (321, 375),
-    (375, 291),
-    (61, 185),
-    (185, 40),
-    (40, 39),
-    (39, 37),
-    (37, 0),
-    (0, 267),
-    (267, 269),
-    (269, 270),
-    (270, 409),
-    (409, 291),
-    (78, 95),
-    (95, 88),
-    (88, 178),
-    (178, 87),
-    (87, 14),
-    (14, 317),
-    (317, 402),
-    (402, 318),
-    (318, 324),
-    (324, 308),
-    (78, 191),
-    (191, 80),
-    (80, 81),
-    (81, 82),
-    (82, 13),
-    (13, 312),
-    (312, 311),
-    (311, 310),
-    (310, 415),
-    (415, 308)
-])
+    testPt = {'X': 100.0, 'Y': 300.0}
+
+    utils.drawLineOnImage(img,p1,p2)
+    img = cv2.drawMarker(img, ((int)(testPt['X']), (int)(testPt['Y'])) , (255, 0, 0), 0, 10)
+    reflectedPoint = reflectPoint(p1, p2, testPt)
+
+    img = cv2.drawMarker(img, ((int)(reflectedPoint['X']), (int)(reflectedPoint['Y'])) , (0, 0, 255), 0, 10)
 
 
-# Load drawing_utils and drawing_styles
-mp_drawing = mp.solutions.drawing_utils 
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_face_mesh = mp.solutions.face_mesh
+    cv2.imshow('Image', img)
+    cv2.waitKey()
 
-circleDrawingSpec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1, color=(0,255,0))
-videoFolderPath = 'C:\\Users\\212574830\\Desktop\\Project symmetry\\\TestVideos'
-
-#debug code - run code on images from disk insead of exraction from video
-if 0:
-  videoFolderPath = 'C:\\Users\\212574830\\Desktop\\Project symmetry\\Videos\\Movement_sense_video'
-  utils.load_images_from_folder('C:\\Users\\212574830\\Desktop\\Project symmetry\\Videos\\Movement_sense_video\\Images')
-
-utils.extractImagesFromVideo(videoFolderPath, images, False)
-
-# Preview the images.
-for name, image in images.items():
-  print(name)   
-  utils.resize_and_show(image)
+    return
 
 
-#Run FaceMesh on each image to get landmarks
-with mp_face_mesh.FaceMesh(
-    static_image_mode=False,        #Was True, unrelated images (True) or as a video stream (False)
-    max_num_faces=2,
-    min_detection_confidence=0.5) as face_mesh:
+WIDTH = 1080
+HEIGHT = 1920
 
-  for name, image in images.items():
-    # Convert the BGR image to RGB and process it with MediaPipe Face Mesh.
-    results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+def randX(): return random.randint(5,1080 - 5)
+def randY(): return random.randint(5,HEIGHT - 5)
 
-    #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
-    landmarkImagePoints = utils.getFilteredLandmarkData(results.multi_face_landmarks[0], LIPS_LANDMARKS)
+def inRange(pt):
+    if((pt['X'] > 0) and (pt['X'] < WIDTH) and (pt['Y'] > 0) and (pt['Y'] < HEIGHT)):
+        return True
+    else:
+        return False
 
-    # Draw face landmarks of each face.
-    print(f'Face landmarks of {name}:')
-    if not results.multi_face_landmarks:
-      continue
+def testFunc2():
+    img = cv2.imread('C:\\GIT\\Symmetry\\TestImages\\N12_02_MS_20.jpg')
+    
+    random.seed()
 
-    annotated_image = image.copy()
-    #cv2.imshow('',annotated_image)
+    #first point is the center of image, the second is random.
+    p1 = {'X': WIDTH / 2, 'Y': HEIGHT / 2}
+    p2 = {'X': randX(), 'Y': randY()}
 
-    #create image landmarks output folder
-    OutPath = 'C:\\Users\\212574830\\Desktop\\Project symmetry\\TestImages'
-    os.makedirs(OutPath,exist_ok=True)
+    #draw the symmetry line testpoints.
+    img = cv2.drawMarker(img, ((int)(p1['X']), (int)(p1['Y'])) , (0, 255, 0), 0, 30)
+    img = cv2.drawMarker(img, ((int)(p2['X']), (int)(p2['Y'])) , (0, 255, 0), 0, 30)
 
-    for face_landmarks in results.multi_face_landmarks:
+    #draw the actual symmetry line on the image.
+    img = cv2.line(img, ((int)(p1['X']), (int)(p1['Y'])), ((int)(p2['X']), (int)(p2['Y'])), (0, 0, 0), 5)
 
-      #Draw Mesh
-      if(1):
-          mp_drawing.draw_landmarks(
-          image=annotated_image,
-          landmark_list=face_landmarks,
-          connections=mp_face_mesh.FACEMESH_TESSELATION,
-          landmark_drawing_spec=None,
-          connection_drawing_spec=mp_drawing_styles
-          .get_default_face_mesh_tesselation_style())
+    #test for 50 points
+    for i in range(50):
+        testPt = {'X': randX(), 'Y': randY()}
+        reflectedPoint = reflectPoint(p1, p2, testPt)
 
-      #draw fram lines
-      if(0):
-        mp_drawing.draw_landmarks(
-        image=annotated_image,
-        landmark_list=face_landmarks,
-        connections=MY_FACE_CONNECTIONS ,
-        landmark_drawing_spec=circleDrawingSpec,#None,
-        connection_drawing_spec=mp_drawing_styles
-        .get_default_face_mesh_contours_style())
+        #only draw points that have both original and reflection on the image.
+        if(inRange(testPt) and inRange(reflectedPoint)):
+            img = cv2.drawMarker(img, ((int)(testPt['X']), (int)(testPt['Y'])) , (255, 0, 0), 0, 30)
+            img = cv2.drawMarker(img, ((int)(reflectedPoint['X']), (int)(reflectedPoint['Y'])) , (0, 0, 0), 0, 30)
 
-      utils.resize_and_show(annotated_image)    
+    #cv2.imshow('Image', img)
+    utils.resize_and_show(img, True)
+    cv2.waitKey()
 
-      #degug: print landmark markers + numbering on image.
-      #utils.printLandmarkPoints(landmarkImagePoints, annotated_image)
+    return
 
-      #find and print landmarks center
-      cetner = utils.centerMass(landmarkImagePoints)
-      annotated_image = cv2.drawMarker(annotated_image, ((int)(cetner['X']), (int)(cetner['Y'])) , (255, 0, 0), 0, 10)
-
-      #find and print face reference line
-      refSrc = utils.convertPoint(results.multi_face_landmarks[0], 9)
-      refDst = utils.convertPoint(results.multi_face_landmarks[0], 200)
-      utils.drawLineOnImage(annotated_image, refSrc, refDst)
-
-      if(0):
-        cv2.imshow('', annotated_image)
-
-      # addd text to Image
-      #imageWithText = addTextOnImage(annotated_image,'Hello World')
-      #cv2.imwrite(os.path.join(OutPath, name + '.jpg'), imageWithText)
-        
-      cv2.imwrite(os.path.join(OutPath, name + '.jpg'), annotated_image)  
-
-
-
-          
+testFunc2()
