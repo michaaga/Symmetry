@@ -1,7 +1,4 @@
 import cv2
-from cv2 import imshow
-from numpy import poly1d
-from sympy import Idx
 import utils
 import random
 import math
@@ -57,28 +54,44 @@ def calcSD(p0, p1, centerPoint, dst):
 #d) return SD of the two original points vs (P0^,P1^) <-> (P0,P1)
   global img
   global idx 
- 
+
   reflectedPoint = reflectPoint(centerPoint, dst, p1)
   
   p0_ = avgPts(p0, reflectedPoint)
   p1_ = reflectPoint(centerPoint, dst, p0_)
 
-  if(inRange(p0_) and inRange(p1_) and inRange(p1_)):
+  if(inRange(p0_) and inRange(p1_)):
     #draw the symmetry line testpoints.
-    color = utils.random_color()
-
     utils.annotatePoint(img, p0, str(idx), (0, 0, 0))
     utils.annotatePoint(img, p1, str(idx+1), (0, 0, 0))
 
     utils.annotatePoint(img, p0_, str(idx) + '*', (0, 0, 255))
     utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
-
-    #utils.annotatePoint(img, reflectedPoint, 'R', (0, 0, 255))
-    #utils.resize_and_show(img,True)
     idx +=2
 
-  ret = pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_)
-  return ret
+  return pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_) 
+
+#calculate SD for a specific symmetry line
+def checkLineSD(center, dst, points):
+    
+    rightPts = []
+    leftPts  = []
+
+    #create test points
+    for pt in points:
+        if(isPointLeftOfLine(center, dst, pt)):
+            leftPts.append(pt)
+        else:
+            rightPts.append(pt)
+
+    assert len(points) == (len(leftPts) + len(rightPts))
+
+    totalSD = 0
+    for leftItem in leftPts:
+        for rightItem in rightPts:
+            totalSD += calcSD(leftItem, rightItem, center, dst)
+
+    return totalSD / len(points)
 
 #degugging code
 #**************
@@ -118,7 +131,7 @@ def testReflectPoint():
 
     return
 
-def testSD():
+def testCalcSD():
     global img
     global idx
 
@@ -152,6 +165,54 @@ def testSD():
 
     return
 
+def testCheckLineSD():
+    global img 
+    global idx
+    random.seed(10)
 
-testSD()
+    #first point is the center of image, the second is random.
+    center = {'X': WIDTH / 2, 'Y': HEIGHT / 2}
+    #dst = {'X': randX(), 'Y': randY()}
+    lineLength = 100
+
+    points = []
+
+    #create test points
+    for i in range(50):
+        testPt = {'X': randX(), 'Y': randY()}
+        points.append(testPt)
+
+    minVal = 2**64
+
+    #run  10 lines across the circle and check for minimal SD
+    for angle in range(0, 360, 36):
+
+        #reset the image to see the best SD
+        img = cv2.imread('C:\\GIT\\Symmetry\\TestImages\\N12_02_MS_20.jpg')
+
+        #calculate Dst point to angle
+        dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
+        dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
+        dst = {'X': dstX, 'Y': dstY}
+
+        #draw Symmetry line
+        img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
+        idx = 0
+
+        #calculate Symmetry line SD
+        val = checkLineSD(center, dst, points)        
+        print("Angle: " + str(angle) + ", Value:" + str(val))
+        
+        #look for the min
+        if(val < minVal):
+            minVal = val
+            utils.resize_and_show(img, True)
+            print("Min Value:" + str(minVal) + '\n')
+
+    return minVal
+
+#run Debug code
+
+#testCalcSD()
 #testReflectPoint()
+testCheckLineSD()
