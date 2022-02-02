@@ -3,6 +3,7 @@ import cv2
 import os
 import random
 import math
+import landmarkDefs
 
 DESIRED_HEIGHT = 1080
 DESIRED_WIDTH = 1920
@@ -118,9 +119,10 @@ def getFilteredLandmarkData(landmarks, filterSet):
 #debug: test method to check position of landmark points..
 def printLandmarkPoints(landmarkImagePoints, img):
   font = cv2.FONT_HERSHEY_SIMPLEX
-  for x in landmarkImagePoints.items():
-    img = cv2.drawMarker(img, ((int)(x[1]['X']), (int)(x[1]['Y'])) , (255, 0, 0), 0, 10)
-    img = cv2.putText(img, str(x[0]), ((int)(x[1]['X']), (int)(x[1]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])) , (255,0,0), 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])) , (0,0,255), 0, 3)
+    #img = cv2.putText(img, str(x[0]), ((int)(x[1]['X']), (int)(x[1]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
 
 def annotatePoint(img, pt, text = '', color = (0,0,0)):
   font = cv2.FONT_HERSHEY_SIMPLEX

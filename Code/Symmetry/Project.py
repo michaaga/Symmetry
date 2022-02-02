@@ -3,98 +3,11 @@ import mediapipe as mp
 import cv2
 import os
 import math 
-from numpy import imag
 import utils
 import Symmetry
+import landmarkDefs
 
 images = {} #global images dictionary
-
-LIPS_LANDMARKS = [ 61,
-                  146,
-                  91,
-                  181,
-                  84,
-                  17,
-                  314,
-                  405,
-                  321,
-                  375,
-                  291,
-                  185,
-                  40,
-                  39,
-                  37,
-                  0,
-                  267,
-                  269,
-                  270,
-                  409,
-                  78,
-                  95,
-                  88,
-                  178,
-                  87,
-                  14,
-                  317,
-                  402,
-                  318,
-                  324,
-                  308,
-                  191,
-                  80,
-                  81,
-                  82,
-                  13,
-                  312,
-                  311,
-                  310,
-                  415]
-
-FACE_GUIDE = [9, 200]
-
-MY_FACE_CONNECTIONS = frozenset([
-    # Lips.
-    (61, 146),
-    (146, 91),
-    (91, 181),
-    (181, 84),
-    (84, 17),
-    (17, 314),
-    (314, 405),
-    (405, 321),
-    (321, 375),
-    (375, 291),
-    (61, 185),
-    (185, 40),
-    (40, 39),
-    (39, 37),
-    (37, 0),
-    (0, 267),
-    (267, 269),
-    (269, 270),
-    (270, 409),
-    (409, 291),
-    (78, 95),
-    (95, 88),
-    (88, 178),
-    (178, 87),
-    (87, 14),
-    (14, 317),
-    (317, 402),
-    (402, 318),
-    (318, 324),
-    (324, 308),
-    (78, 191),
-    (191, 80),
-    (80, 81),
-    (81, 82),
-    (82, 13),
-    (13, 312),
-    (312, 311),
-    (311, 310),
-    (310, 415),
-    (415, 308)
-])
 
 videoFolderPath = 'C:\\GIT\\Symmetry\\TestVideos'
 #videoFolderPath = 'C:\\GIT\\Symmetry\\Videos\\Movement_sense_video'
@@ -104,6 +17,19 @@ ImagesOutPath = 'C:\\GIT\\Symmetry\\TestImages' #create image landmarks output f
 mp_drawing = mp.solutions.drawing_utils 
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
+
+def createLandmarkList():
+  landmarkList = []
+  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+    if x[0] in landmarkList or x[1] in landmarkList:
+      print ("duplicate found!!!!!!!!!!")
+      return
+
+    else:  
+      landmarkList.append(x[0])
+      landmarkList.append(x[1])
+    
+  return landmarkList
 
 def runMpFaceMesh(image):
 
@@ -137,7 +63,7 @@ def runMpFaceMesh(image):
         mp_drawing.draw_landmarks(
         image=image,
         landmark_list=face_landmarks,
-        connections=MY_FACE_CONNECTIONS ,
+        connections=landmarkDefs.MY_FACE_CONNECTIONS,
         landmark_drawing_spec=circleDrawingSpec,#None,
         connection_drawing_spec=mp_drawing_styles
         .get_default_face_mesh_contours_style())
@@ -167,18 +93,23 @@ def main():
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
 
+    #create a list from the list of tuples
+    landmarkList  = createLandmarkList()
+
     #run FaceMesh to get landmark points
     landmarkPoints = runMpFaceMesh(image)
-    
+
+      
     #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
-    landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, LIPS_LANDMARKS)  
-    guideImagePoints    = utils.getFilteredLandmarkData(landmarkPoints, FACE_GUIDE)  
+  # landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, landmarkDefs.LIPS_LANDMARKS)  
+    landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, landmarkList)  
+    guideImagePoints    = utils.getFilteredLandmarkData(landmarkPoints, landmarkDefs.FACE_GUIDE)  
 
     #find and print face reference line
-    utils.drawLineOnImage(image, guideImagePoints[9], guideImagePoints[200])
+    utils.drawLineOnImage(image, guideImagePoints[9], guideImagePoints[94])
 
-    refLineAngle = utils.get_angle(guideImagePoints[9], guideImagePoints[200])
-  
+    refLineAngle = utils.get_angle(guideImagePoints[9], guideImagePoints[94])
+
     #find and print landmarks center
     center = utils.centerMass(landmarkImagePoints)
     utils.annotatePoint(image, center, 'CM')

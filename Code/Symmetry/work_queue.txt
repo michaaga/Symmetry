@@ -1,0 +1,11 @@
+
+work needed:
+
+1. Normalization - normalize all points of landmarks according to ???
+	1.a calculate lips center mass
+	1.b have the avg. distance from the center of mass (squared) to be fixed to 100.
+	1.c find the normalization factor and use it for the rest of the code.
+
+2.create hard coded matching pairs of the lips area
+3.ref. line - update to have the center of forhead to the button of nose.
+4. plot the mouth movement vs the Symmetric distance.
