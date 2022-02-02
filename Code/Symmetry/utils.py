@@ -122,7 +122,10 @@ def printLandmarkPoints(landmarkImagePoints, img):
   for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])) , (255,0,0), 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])) , (0,0,255), 0, 3)
-    #img = cv2.putText(img, str(x[0]), ((int)(x[1]['X']), (int)(x[1]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+
+  return
 
 def annotatePoint(img, pt, text = '', color = (0,0,0)):
   font = cv2.FONT_HERSHEY_SIMPLEX

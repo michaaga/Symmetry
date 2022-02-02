@@ -34,7 +34,7 @@ LIPS_LANDMARK_SYMMTERY = [
                             #4th external (upper point 13, lower point 14 )
                             (312, 82),
                             (311, 81),
-                            (301, 80),
+                            (310, 80),
                             (415, 191),
                             (317, 87),
                             (402, 178),
