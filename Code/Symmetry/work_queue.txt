@@ -8,4 +8,5 @@ work needed:
 
 2.create hard coded matching pairs of the lips area
 3.ref. line - update to have the center of forhead to the button of nose.
+4. calculate the ref line angle from the article equation.
 4. plot the mouth movement vs the Symmetric distance.

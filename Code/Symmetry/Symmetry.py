@@ -1,6 +1,5 @@
-from xmlrpc.client import MAXINT
 import cv2
-from cv2 import minEnclosingTriangle
+import landmarkDefs
 import utils
 import random
 import math
@@ -71,59 +70,22 @@ def calcSD(p0, p1, centerPoint, dst):
 #     utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
 #     idx +=2
 
-  return pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_) 
+  return (pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_)) / 2.0 
 
 #calculate SD for a specific symmetry line
-def checkLineSD(center, dst, points):
-    
-    rightPts = []
-    leftPts  = []
+def checkSymmetryOfLine(img, src, dst, points):
 
-    #create test points
-    for pt in points:
-        if(isPointLeftOfLine(center, dst, pt)):
-            leftPts.append(pt)
-        else:
-            rightPts.append(pt)
-
-    assert len(points) == (len(leftPts) + len(rightPts))
-
+    #go over all symmtery matches and calculate symmetry.
     totalSD = 0
-    for leftItem in leftPts:
-        for rightItem in rightPts:
-            totalSD += calcSD(leftItem, rightItem, center, dst)
-
-    return totalSD / len(points)
-
-def checkAllSymmetryLines(img, center, points):
-    lineLength = 100
-    minVal = 2**64
-    minAngle = 0
-
-    #run  10 lines across the circle and check for minimal SD
-    for angle in range(0, 360, 1):
-
-        #calculate Dst point to angle
-        dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
-        dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
-        dst = {'X': dstX, 'Y': dstY}
-
-        #draw Symmetry line
-        #img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
+    for pair in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+        pt1 = pair[0]
+        pt2 = pair[1]
 
         #calculate Symmetry line SD
-        val = checkLineSD(center, dst, points)
-        #print("Angle: " + str(angle) + ", Value:" + str(val))
+        totalSD += calcSD(points[pt1], points[pt2], src, dst)
+
+    return totalSD
         
-        #look for the min
-        if(val < minVal):
-            minVal = val
-            minAngle = angle #save the min result corresponding angle
-            #utils.resize_and_show(img, True)
-            #print("Min Value:" + str(minAngle) + '\n')
-
-    return minVal, minAngle
-
 #degugging code
 #**************
 #testReflectPoint()
@@ -196,7 +158,7 @@ def testCalcSD():
 
     return
 
-def testCheckLineSD():
+def testCheckSymmetryOfLine():
     global img 
     global idx
     random.seed(10)
@@ -206,44 +168,36 @@ def testCheckLineSD():
     #dst = {'X': randX(), 'Y': randY()}
     lineLength = 100
 
-    points = []
+    points = {}
 
     #create test points
-    for i in range(50):
-        testPt = {'X': randX(), 'Y': randY()}
-        points.append(testPt)
+    for i in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+        pt1 = {'X': randX(), 'Y': randY()}
+        pt2 = {'X': randX(), 'Y': randY()}
+        points[i[0]] = pt1
+        points[i[1]] = pt2
 
-    minVal = 2**64
+    #reset the image to see the best SD
+    img = cv2.imread('C:\\GIT\\Symmetry\\TestImages\\N12_02_MS_20.jpg')
 
-    #run  10 lines across the circle and check for minimal SD
-    for angle in range(0, 360, 36):
+    #calculate Dst point to angle
+    angle = 30
+    dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
+    dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
+    dst = {'X': dstX, 'Y': dstY}
 
-        #reset the image to see the best SD
-        img = cv2.imread('C:\\GIT\\Symmetry\\TestImages\\N12_02_MS_20.jpg')
+    #draw Symmetry line
+    img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
+    idx = 0
 
-        #calculate Dst point to angle
-        dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
-        dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
-        dst = {'X': dstX, 'Y': dstY}
-
-        #draw Symmetry line
-        img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
-        idx = 0
-
-        #calculate Symmetry line SD
-        val = checkLineSD(center, dst, points)        
-        print("Angle: " + str(angle) + ", Value:" + str(val))
-        
-        #look for the min
-        if(val < minVal):
-            minVal = val
-            utils.resize_and_show(img, True)
-            print("Min Value:" + str(minVal) + '\n')
-
-    return minVal
+    #calculate Symmetry line SD
+    val = checkSymmetryOfLine(img, center, dst, points)        
+    print("Angle: " + str(angle) + ", Value:" + str(val))
+    
+    return 
 
 #run Debug code
 
 #testCalcSD()
 #testReflectPoint()
-#testCheckLineSD()
+#testCheckSymmetryOfLine()

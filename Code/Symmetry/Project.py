@@ -88,35 +88,35 @@ def main():
   #load all images from video/disk
   getImages()
 
+  #create a list from the list of tuples
+  landmarkList  = createLandmarkList()
+
   index = 0
   for name, image in images.items():
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
 
-    #create a list from the list of tuples
-    landmarkList  = createLandmarkList()
-
     #run FaceMesh to get landmark points
     landmarkPoints = runMpFaceMesh(image)
-
       
     #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
-  # landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, landmarkDefs.LIPS_LANDMARKS)  
     landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, landmarkList)  
     guideImagePoints    = utils.getFilteredLandmarkData(landmarkPoints, landmarkDefs.FACE_GUIDE)  
 
     #find and print face reference line
-    utils.drawLineOnImage(image, guideImagePoints[9], guideImagePoints[94])
-
-    refLineAngle = utils.get_angle(guideImagePoints[9], guideImagePoints[94])
+    refLineSrc = guideImagePoints[9]
+    refLineDst = guideImagePoints[94]
+    utils.drawLineOnImage(image, refLineSrc , refLineDst)
+    refLineAngle = utils.get_angle(refLineSrc, refLineDst)
 
     #find and print landmarks center
     center = utils.centerMass(landmarkImagePoints)
-    utils.annotatePoint(image, center, 'CM')
+    #utils.annotatePoint(image, center, 'CM')
 
-    #run Symmetry Alg.
-    minSD, angle = Symmetry.checkAllSymmetryLines(image, center, landmarkImagePoints.values())
+    #run Symmetry Alg while using the face ref line as the symmetry line.
+    SD = Symmetry.checkSymmetryOfLine(image, refLineSrc, refLineDst, landmarkImagePoints)
     
+    angle = 0 # MISSING CALCULATION FOR ANGLE DERIVED FROM POINTS
     #keep the angles from 0 to 180.
     if(angle > 180):
       angle = angle - 180
@@ -130,7 +130,7 @@ def main():
 
     #add Text Info On Images
     utils.addTextOnImage(image, name, (50, 50))
-    utils.addTextOnImage(image, 'MIN SD = ' + str(minSD), (50, 100))
+    utils.addTextOnImage(image, 'SD = ' + str(SD), (50, 100))
     utils.addTextOnImage(image, 'MIN SD Angle = ' + str(angle), (50, 150))
     utils.addTextOnImage(image, 'Ref Line Angle = ' + str(refLineAngle), (50, 200))
     utils.addTextOnImage(image, 'Angle Diff = ' + str(refLineAngle - angle), (50, 250))
