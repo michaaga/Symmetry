@@ -134,6 +134,7 @@ def main():
     utils.addTextOnImage(image, 'MIN SD Angle = ' + str(angle), (50, 150))
     utils.addTextOnImage(image, 'Ref Line Angle = ' + str(refLineAngle), (50, 200))
     utils.addTextOnImage(image, 'Angle Diff = ' + str(refLineAngle - angle), (50, 250))
+    utils.addTextOnImage(image, 'Mouth Size = ' + str(guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']), (50, 300))
 
     #plot the landmarks
     utils.printLandmarkPoints(landmarkImagePoints, image)

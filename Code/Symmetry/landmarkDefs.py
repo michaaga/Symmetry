@@ -84,7 +84,7 @@ LIPS_LANDMARKS = [ 61,
                   310,
                   415]
 
-FACE_GUIDE = [9, 94] #middle of forhead to endn of nose ref. line
+FACE_GUIDE = [9, 94, 13, 14] #middle of forhead to endn of nose ref. line + lips up and down
 
 MY_FACE_CONNECTIONS = frozenset([
     # Lips.
