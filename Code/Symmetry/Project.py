@@ -1,4 +1,5 @@
 from logging import exception
+from turtle import xcor
 import mediapipe as mp
 import cv2
 import os
@@ -6,6 +7,8 @@ import math
 import utils
 import Symmetry
 import landmarkDefs
+import matplotlib.pyplot as plt
+
 
 images = {} #global images dictionary
 
@@ -92,6 +95,10 @@ def main():
   landmarkList  = createLandmarkList()
 
   index = 0
+  SD = []
+  mouthSize = []
+  xVal = list(range(0, len(images)))
+
   for name, image in images.items():
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
@@ -114,7 +121,7 @@ def main():
     #utils.annotatePoint(image, center, 'CM')
 
     #run Symmetry Alg while using the face ref line as the symmetry line.
-    SD = Symmetry.checkSymmetryOfLine(image, refLineSrc, refLineDst, landmarkImagePoints)
+    SD.append(Symmetry.checkSymmetryOfLine(image, refLineSrc, refLineDst, landmarkImagePoints))
     
     angle = 0 # MISSING CALCULATION FOR ANGLE DERIVED FROM POINTS
     #keep the angles from 0 to 180.
@@ -127,6 +134,10 @@ def main():
     dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
     dst = {'X': dstX, 'Y': dstY}
     utils.drawLineOnImage(image, center, dst, (0,0,255))
+    
+    #get mouth size + SF
+    ms = (guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']) * 50
+    mouthSize.append(ms)
 
     #add Text Info On Images
     utils.addTextOnImage(image, name, (50, 50))
@@ -134,7 +145,8 @@ def main():
     utils.addTextOnImage(image, 'MIN SD Angle = ' + str(angle), (50, 150))
     utils.addTextOnImage(image, 'Ref Line Angle = ' + str(refLineAngle), (50, 200))
     utils.addTextOnImage(image, 'Angle Diff = ' + str(refLineAngle - angle), (50, 250))
-    utils.addTextOnImage(image, 'Mouth Size = ' + str(guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']), (50, 300))
+    utils.addTextOnImage(image, 'Mouth Size = ' + str(ms), (50, 300))
+
 
     #plot the landmarks
     utils.printLandmarkPoints(landmarkImagePoints, image)
@@ -142,6 +154,14 @@ def main():
     #save
     #utils.resize_and_show(image, True)
     cv2.imwrite(os.path.join(ImagesOutPath, name + '.jpg'), image)
+
+  plt.plot(xVal, SD, label = "SD")
+  plt.plot(xVal, mouthSize, label = "Mouth Size") 
+  plt.xlabel('Image Frame')
+  plt.ylabel('y - axis')
+  plt.title('SD & Mouth Size per Frame')
+  plt.legend()
+  plt.show()
 
   return
 
