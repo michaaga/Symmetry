@@ -21,19 +21,6 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 
-def createLandmarkList():
-  landmarkList = []
-  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
-    if x[0] in landmarkList or x[1] in landmarkList:
-      print ("duplicate found!!!!!!!!!!")
-      return
-
-    else:  
-      landmarkList.append(x[0])
-      landmarkList.append(x[1])
-    
-  return landmarkList
-
 def runMpFaceMesh(image):
 
   circleDrawingSpec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1, color=(0,255,0))
@@ -92,7 +79,7 @@ def main():
   getImages()
 
   #create a list from the list of tuples
-  landmarkList  = createLandmarkList()
+  landmarkList  = utils.createLandmarkList()
 
   index = 0
   SD = []
@@ -105,19 +92,23 @@ def main():
 
     #run FaceMesh to get landmark points
     landmarkPoints = runMpFaceMesh(image)
+    allLandmarks = utils.getAllLandmarksData(landmarkPoints)
+
+    normLandmarks, scale = Symmetry.normalizeLandmarks(allLandmarks, 100)
       
     #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
-    landmarkImagePoints = utils.getFilteredLandmarkData(landmarkPoints, landmarkList)  
-    guideImagePoints    = utils.getFilteredLandmarkData(landmarkPoints, landmarkDefs.FACE_GUIDE)  
+    landmarkImagePoints = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
+    guideImagePoints    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
 
     #find and print face reference line
     refLineSrc = guideImagePoints[9]
     refLineDst = guideImagePoints[94]
-    utils.drawLineOnImage(image, refLineSrc , refLineDst)
+
+    utils.drawLineOnImage(image, refLineSrc, refLineDst, scale)
     refLineAngle = utils.get_angle(refLineSrc, refLineDst)
 
     #find and print landmarks center
-    center = utils.centerMass(landmarkImagePoints)
+    center = Symmetry.centerMass(landmarkImagePoints)
     #utils.annotatePoint(image, center, 'CM')
 
     #run Symmetry Alg while using the face ref line as the symmetry line.
@@ -129,14 +120,14 @@ def main():
       angle = angle - 180
 
     #plot the "best" symmetry line from the center
-    lineLength = 100
-    dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
-    dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
-    dst = {'X': dstX, 'Y': dstY}
-    utils.drawLineOnImage(image, center, dst, (0,0,255))
+    #lineLength = 100
+    #dstX = center['X'] + lineLength * math.cos(math.radians(angle))
+    #dstY = center['Y'] + lineLength * math.sin(math.radians(angle))
+    #dst = {'X': dstX, 'Y': dstY}
+    #utils.drawLineOnImage(image, center, dst, (0,0,255))
     
     #get mouth size + SF
-    ms = (guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']) * 50
+    ms = (guideImagePoints[14]['Y'] / scale - guideImagePoints[13]['Y'] / scale ) * 50
     mouthSize.append(ms)
 
     #add Text Info On Images
@@ -149,13 +140,13 @@ def main():
 
 
     #plot the landmarks
-    utils.printLandmarkPoints(landmarkImagePoints, image)
+    utils.printLandmarkPoints(landmarkImagePoints, scale, image)
 
     #save
     #utils.resize_and_show(image, True)
     cv2.imwrite(os.path.join(ImagesOutPath, name + '.jpg'), image)
 
-  plt.plot(xVal, SD, label = "SD")
+  #plt.plot(xVal, SD, label = "SD")
   plt.plot(xVal, mouthSize, label = "Mouth Size") 
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')

@@ -35,14 +35,14 @@ def inRange(pt):
 
 #return avg ot 2 (X,Y) Dict. points
 def avgPts(p1,p2):
-    return { 'X': (int)((p1['X'] + p2['X']) / 2.0), 'Y': (int)((p1['Y'] + p2['Y']) / 2.0) }
+    return { 'X': (p1['X'] + p2['X'] / 2.0), 'Y': (p1['Y'] + p2['Y']) / 2.0 }
 
 #lineSrc = line point 1; lineDst = line point 2; pt = point to check against.
 def isPointLeftOfLine(lineSrc, lineDst, pt):
     return ((lineDst['X'] - lineSrc['X'])*(pt['Y'] - lineSrc['Y']) - (lineDst['Y'] - lineSrc['Y'])*(pt['X'] - lineSrc['X'])) > 0
 
 #returns symmetry distance between any point and its Symmetry Transform
-def pointsPairSD(p1, p2):
+def pointsPairSqrDistance(p1, p2):
     return math.dist([p1['X'], p1['Y']], [p2['X'], p2['Y']])**2
 
 #calculate the symmetry distance between a pair of points
@@ -70,7 +70,7 @@ def calcSD(p0, p1, centerPoint, dst):
 #     utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
 #     idx +=2
 
-  return (pointsPairSD(p0, p0_) + pointsPairSD(p1, p1_)) / 2.0 
+  return (pointsPairSqrDistance(p0, p0_) + pointsPairSqrDistance(p1, p1_)) / 2.0 
 
 #calculate SD for a specific symmetry line
 def checkSymmetryOfLine(img, src, dst, points):
@@ -85,7 +85,42 @@ def checkSymmetryOfLine(img, src, dst, points):
         totalSD += calcSD(points[pt1], points[pt2], src, dst)
 
     return totalSD
-        
+
+#find points center of mass
+def centerMass(points):
+      
+  center_x = 0.0
+  center_y = 0.0
+
+  for p in points.items():
+    center_x += p[1]['X']
+    center_y += p[1]['Y']
+
+  center_x = center_x / len(points)
+  center_y = center_y / len(points)
+
+  return {'X': center_x,'Y': center_y}
+
+def normalizeLandmarks(landmarkList, var):
+
+    mean = centerMass(landmarkList)
+
+    #calculate the avg sqr distance to the center.
+    totalDistance = 0
+    for p in landmarkList.items():
+        totalDistance += pointsPairSqrDistance(mean, p[1])
+
+    #Square STD value
+    stdSqr = totalDistance / len(landmarkList)
+
+    normalizedList = {}
+    scale = var / math.sqrt(stdSqr)
+    for p in landmarkList.items():
+        point = {'X': p[1]['X'] * scale, 'Y': p[1]['Y'] * scale}
+        normalizedList[p[0]] =  point
+ 
+    return normalizedList, scale
+
 #degugging code
 #**************
 #testReflectPoint()
@@ -182,8 +217,8 @@ def testCheckSymmetryOfLine():
 
     #calculate Dst point to angle
     angle = 30
-    dstX = center['X'] + (int)(lineLength * math.cos(math.radians(angle)))
-    dstY = center['Y'] + (int)(lineLength * math.sin(math.radians(angle)))
+    dstX = center['X'] + lineLength * math.cos(math.radians(angle))
+    dstY = center['Y'] + lineLength * math.sin(math.radians(angle))
     dst = {'X': dstX, 'Y': dstY}
 
     #draw Symmetry line
@@ -196,8 +231,40 @@ def testCheckSymmetryOfLine():
     
     return 
 
+def testNormalizeLandmarks():
+    global img 
+    global idx
+    random.seed(10)
+
+    points = {}
+    VAR = 100
+
+    #create test points
+    for i in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+        pt1 = {'X': randX(), 'Y': randY()}
+        pt2 = {'X': randX(), 'Y': randY()}
+        points[i[0]] = pt1
+        points[i[1]] = pt2
+
+    pointsCenter = centerMass(points)
+
+    list = normalizeLandmarks(points, VAR)
+    NormMean = centerMass(list)
+
+    #calculate the avg sqr distance to the center.
+    totalDistance = 0
+    for p in list.items():
+        totalDistance += pointsPairSqrDistance(NormMean, p[1])
+
+    #avg the sqr distance
+    stdSqr = totalDistance / len(list)
+
+    print("Var is: " + str(math.sqrt(stdSqr)))
+    return 
+
 #run Debug code
 
 #testCalcSD()
 #testReflectPoint()
 #testCheckSymmetryOfLine()
+#testNormalizeLandmarks()

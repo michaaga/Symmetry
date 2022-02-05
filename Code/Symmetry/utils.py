@@ -84,54 +84,48 @@ def addTextOnImage(image, text, pos):
   return cv2.putText(image, text, pos, font, 1, (0, 255, 0), 2, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
-def drawLineOnImage(image, src, dest, color = (0,0,0)):
+def drawLineOnImage(image, src, dest, scale, color = (0,0,0)):
   height, width, channels = image.shape
-  image = cv2.line(image, ((int)(src['X']), (int)(src['Y'])), ((int)(dest['X']), (int)(dest['Y'])), color, 2)
-
-#find points center of mass
-def centerMass(points):
-      
-  center_x = 0.0
-  center_y = 0.0
-
-  for p in points.items():
-    center_x += p[1]['X']
-    center_y += p[1]['Y']
-
-  center_x = center_x / len(points)
-  center_y = center_y / len(points)
-
-  return {'X': center_x,'Y': center_y}
+  image = cv2.line(image, ((int)(src['X'] / scale), (int)(src['Y'] / scale)), ((int)(dest['X'] / scale ), (int)(dest['Y'] / scale)), color, 2)
 
 #convert point to image coordinates
 def convertPoint(landmarks, idx):
-  point = { 'X': (int)(landmarks.landmark[idx].x * DESIRED_HEIGHT), 'Y': (int)(landmarks.landmark[idx].y * DESIRED_WIDTH) }
+  point = { 'X': landmarks.landmark[idx].x * DESIRED_HEIGHT, 'Y': landmarks.landmark[idx].y * DESIRED_WIDTH }
   return point
 
 #get relevant landmarks only (image coordinates)
 def getFilteredLandmarkData(landmarks, filterSet):
   keypoints = {}
   for idx in filterSet:
+      keypoints[idx] = landmarks[idx]
+
+  return keypoints
+
+def getAllLandmarksData(landmarks):
+  keypoints = {}
+  for idx in range(0,468):
       keypoints[idx] = convertPoint(landmarks, idx)
 
   return keypoints
 
 #debug: test method to check position of landmark points..
-def printLandmarkPoints(landmarkImagePoints, img):
+def printLandmarkPoints(landmarkImagePoints, scale, img):
   font = cv2.FONT_HERSHEY_SIMPLEX
   for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])) , (255,0,0), 0, 3)
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])) , (0,0,255), 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , (255,0,0), 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , (0,0,255), 0, 3)
     #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
     #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
 
   return
 
+#add text and marker on point
 def annotatePoint(img, pt, text = '', color = (0,0,0)):
   font = cv2.FONT_HERSHEY_SIMPLEX
   img = cv2.drawMarker(img, ((int)(pt['X']), (int)(pt['Y'])) , color, 0, 30)
   img = cv2.putText(img, text, ((int)(pt['X']), (int)(pt['Y'])), font, 0.7, color, 1, cv2.LINE_AA)  
 
+#calculate angle between two lines
 def angleBetweenPoints(pt1, pt2):
     x1 = pt1['X']
     y1 = pt1['Y']
@@ -150,11 +144,23 @@ def angleBetweenPoints(pt1, pt2):
 
 #Get the angle of this line with the horizontal axis.
 def get_angle(p1, p2):
-
     dx = p2['X'] - p1['X']
     dy = p2['Y']- p1['Y']
     theta = math.atan2(dy, dx)
     angle = math.degrees(theta)  # angle is in (-180, 180]
     if angle < 0:
         angle = 360 + angle
-    return (int)(angle)
+    return angle
+
+def createLandmarkList():
+  landmarkList = []
+  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+    if x[0] in landmarkList or x[1] in landmarkList:
+      print ("duplicate found!!!!!!!!!!")
+      return
+
+    else:  
+      landmarkList.append(x[0])
+      landmarkList.append(x[1])
+    
+  return landmarkList
