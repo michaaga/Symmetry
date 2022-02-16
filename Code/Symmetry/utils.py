@@ -55,16 +55,29 @@ def load_images_from_folder(folder, images):
           images[filename] = img
 
 #fill the images dictionary
-def getImages(path, images):
-  if 0:
+def getImages(path, images, debugOption = 'VIDEO_FOLDER'):
+
+#  debugOption = 'VIDEO_FOLDER'
+#  debugOption = 'IMAGE_FOLDER'
+#  debugOption = 'ONE_IMAGE'
+
+  if (debugOption == 'VIDEO_FOLDER'):
+        extractImagesFromVideo(path, images, False)
+  elif (debugOption == 'IMAGE_FOLDER'):
     load_images_from_folder(path, images)
   else:
-    extractImagesFromVideo(path, images, False)
+      img = cv2.imread(path)
+      if img is not None:
+        images['Test Image'] = img
 
     # Preview the images.
   for name, image in images.items():
-    print(name)   
-    resize_and_show(image)
+    print(name)
+    if(debugOption == 'ONE_IMAGE'):
+      # Show the image loaded for single image test
+      resize_and_show(image, True)
+    else:
+      resize_and_show(image) 
 
   return
 
@@ -95,7 +108,7 @@ def resize_and_show(image, showImages = False):
 #add caption on an image
 def addTextOnImage(image, text, pos):
   font = cv2.FONT_HERSHEY_SIMPLEX
-  return cv2.putText(image, text, pos, font, 1, (0, 255, 0), 2, cv2.LINE_AA)    
+  return cv2.putText(image, text, pos, font, 1, (0, 0, 0), 2, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
 def drawLineOnImage(image, src, dest, scale, color = (0,0,0)):

@@ -8,7 +8,7 @@ import landmarkDefs
 import matplotlib.pyplot as plt
 
 images = {} #global images dictionary
-NORM_VAR = 10
+NORM_VAR = 100
 
 videoFolderPath = 'C:\\GIT\\Symmetry\\TestVideos'
 #videoFolderPath = 'C:\\GIT\\Symmetry\\Videos\\Movement_sense_video'
@@ -102,9 +102,7 @@ def imageSymmetry(image, name, landmarkList):
   #add Text Info On Images
   utils.addTextOnImage(image, name, (50, 50))
   utils.addTextOnImage(image, 'SD = ' + str(sd), (50, 100))
-  utils.addTextOnImage(image, 'MIN SD Angle = ' + str(angle), (50, 150))
-  utils.addTextOnImage(image, 'Ref Line Angle = ' + str(refLineAngle), (50, 200))
-  utils.addTextOnImage(image, 'Angle Diff = ' + str(refLineAngle - angle), (50, 250))
+  utils.addTextOnImage(image, 'Face Line Angle = ' + str(refLineAngle), (50, 200))
   utils.addTextOnImage(image, 'Mouth Size = ' + str(ms), (50, 300))
 
   #plot the landmarks
@@ -120,6 +118,7 @@ def main():
   
   #load all images from video/disk
   utils.getImages(videoFolderPath, images)
+  #utils.getImages('C:/GIT/Symmetry/TestImages/test_image.jpg', images, 'ONE_IMAGE')
 
   #create a list from the symmetry tuples
   landmarkList = utils.createLandmarkList()
@@ -136,9 +135,15 @@ def main():
     sd, ms = imageSymmetry(image, name, landmarkList)
     SD_DATA.append(sd)
     MOUTH_SIZE_DATA.append(ms)
-    
+
+  ratio = max(SD_DATA) / max(MOUTH_SIZE_DATA)
+
+  #align plot
+  for i in range(len(MOUTH_SIZE_DATA)):
+    MOUTH_SIZE_DATA[i] = MOUTH_SIZE_DATA[i] * ratio
+
   plt.plot(xVal, SD_DATA, label = "SD")
-  plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Size") 
+  plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening") 
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('SD & Mouth Size per Frame')

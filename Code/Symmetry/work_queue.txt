@@ -4,13 +4,13 @@ cehck ref line sensitivty
 
 future Ideas - 
 - allow tool to run on a live webcame inputs
-- add cetner points of image as Symmetric to themselves.
+- add center points of image as Symmetric to themselves.
 
 V1.3 content (not released)
-1. fix SD calculations.
+1. fix SD calculations. - done
 2. test points pairing by reflecting one half to the other.
-2. scale images with wide mouth measured
-3. update ref line to include several points from forhead center.
+3. scale images with wide mouth measured
+4. update ref line to include several points from forhead center.
 
 
 V1.2 content (released)
