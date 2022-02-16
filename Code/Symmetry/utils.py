@@ -54,6 +54,20 @@ def load_images_from_folder(folder, images):
         if img is not None:
           images[filename] = img
 
+#fill the images dictionary
+def getImages(path, images):
+  if 0:
+    load_images_from_folder(path, images)
+  else:
+    extractImagesFromVideo(path, images, False)
+
+    # Preview the images.
+  for name, image in images.items():
+    print(name)   
+    resize_and_show(image)
+
+  return
+
 #create random color [RGB]
 def random_color():
     rgbl=[255,0,0]
@@ -135,12 +149,6 @@ def angleBetweenPoints(pt1, pt2):
     len1 = math.hypot(x1, y1)
     len2 = math.hypot(x2, y2)
     return math.degrees(math.acos(inner_product/(len1*len2)))
-
-    """Get the angle of this line with the horizontal axis."""
-
-    """Get the angle of this line with the horizontal axis."""
-
-    """Get the angle of this line with the horizontal axis."""
 
 #Get the angle of this line with the horizontal axis.
 def get_angle(p1, p2):

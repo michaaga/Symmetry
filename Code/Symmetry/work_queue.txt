@@ -1,20 +1,27 @@
+testing:
+cehck S movement vs straight in examples.
+cehck ref line sensitivty
+
+future Ideas - 
+- allow tool to run on a live webcame inputs
+- add cetner points of image as Symmetric to themselves.
+
+V1.3 content (not released)
+1. fix SD calculations.
+2. test points pairing by reflecting one half to the other.
+2. scale images with wide mouth measured
+3. update ref line to include several points from forhead center.
 
 
-V1.2 content
-
+V1.2 content (released)
 1. Normalization - normalize all points of landmarks according to done
 	1.a calculate lips center mass - done
 	1.b have the avg. distance from the center of mass (squared) to be fixed to 100. - done
-	1.c find the normalization factor and use it for the rest of the code.
+	1.c find the normalization factor and use it for the rest of the code. - done
 
 2.create hard coded matching pairs of the lips area - done
 3.ref. line - update to have the center of forhead to the button of nose.- done
 4. plot the mouth movement vs the Symmetric distance. - done
-5. scale images with wide mouth measured - NOT DONE
-6. update ref line to include several points from forhead center.
 
-testing - 
-cehck S movement vs straight in examples.
-cehck ref line sensitivty
 
 
