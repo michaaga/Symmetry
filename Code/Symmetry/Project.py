@@ -97,7 +97,7 @@ def imageSymmetry(image, name, landmarkList):
   #utils.drawLineOnImage(image, center, dst, (0,0,255))
   
   #get mouth size + SF
-  ms = (guideImagePoints[14]['Y'] / scale - guideImagePoints[13]['Y'] / scale ) * 50
+  ms = (guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']) / scale
 
   #add Text Info On Images
   utils.addTextOnImage(image, name, (50, 50))

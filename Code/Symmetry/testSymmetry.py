@@ -3,6 +3,7 @@ import utils
 import random
 import cv2
 import math
+import landmarkDefs
 
 #return random values in H/W ranges
 def randX(): return random.randint(5,1080 - 5)
@@ -29,13 +30,13 @@ def testReflectPoint():
     img = cv2.line(img, ((int)(p1['X']), (int)(p1['Y'])), ((int)(p2['X']), (int)(p2['Y'])), (0, 0, 0), 5)
 
     #test for 50 points
-    for i in range(1, 100):
+    for i in range(1, 1000):
         testPt = {'X': randX(), 'Y': randY()}
         reflectedPoint =  Symmetry.reflectPoint(p1, p2, testPt)
         refBackPoint = Symmetry.reflectPoint(p1, p2, reflectedPoint)
         diff = math.sqrt(Symmetry.pointsPairSqrDistance(testPt, refBackPoint))
 
-        if(diff < 0.01):
+        if(diff > 0.01):
             return False
         
         draw = False
@@ -51,83 +52,57 @@ def testReflectPoint():
 
     return True
 
-def testCalcSD():
-    global img
-    global idx
-
-    img = cv2.imread(testImgPath)
-    random.seed()
-
-    #first point is the center of image, the second is random.
-    center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
-    dst = {'X': randX(), 'Y': randY()}
-
-    #draw the actual symmetry line on the image.
-    img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
-
-    totalDistance = 0
-    #test for 50 points
-    counts = 0
-    idx = 0
-
-    for i in range(100):
-        p0 = {'X': randX(), 'Y': randY()}
-        p1 = {'X': randX(), 'Y': randY()}
-
-        #make sure points are on both sides of symmetry line
-        totalDistance+= Symmetry.calcSD(p0, p1, center, dst)
-        counts+=1
-
-    print('found:' + str(counts) + ' counts')
-    utils.resize_and_show(img, True)
-    cv2.waitKey()
-
-    return
-
 def testCheckSymmetryOfLine():
     global img 
-    global idx
     random.seed(10)
 
-    #first point is the center of image, the second is random.
+    img = cv2.imread(testImgPath)
     center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
-    #dst = {'X': randX(), 'Y': randY()}
-    lineLength = 100
+    utils.annotatePoint(img, center, str('C'), (0, 255, 0))
+
 
     points = {}
 
-    #create test points
-    for i in range(1,100):
-        pt1 = {'X': randX(), 'Y': randY()}
-        pt2 = {'X': randX(), 'Y': randY()}
-        points[i[0]] = pt1
-        points[i[1]] = pt2
+    #create test points across the horizonal line
+    for pair in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+        pt1 = pair[0]
+        pt2 = pair[1]
 
-    #reset the image to see the best SD
-    img = cv2.imread(testImgPath)
+        deltaX =  random.randint(0, Symmetry.WIDTH /2)
+        deltaY =  random.randint(0, Symmetry.HEIGHT /2)
+        dstX = center['X'] + deltaX
+        dstY = center['Y'] + deltaY
+        points[pt1] = {'X': dstX, 'Y': dstY}
+
+        dstX = center['X'] - deltaX
+        points[pt2] = {'X': dstX, 'Y': dstY}
 
     #calculate Dst point to angle
-    angle = 30
+    angle = 90
+    lineLength = 500
+
     dstX = center['X'] + lineLength * math.cos(math.radians(angle))
     dstY = center['Y'] + lineLength * math.sin(math.radians(angle))
     dst = {'X': dstX, 'Y': dstY}
 
     #draw Symmetry line
     img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
-    idx = 0
 
     #calculate Symmetry line SD
     val = Symmetry.checkSymmetryOfLine(img, center, dst, points)
+    print("value is: %d", val)
 
-    #if(VAR - val > 1.0):
-    #    print("Value:" + str(val))
-    #    return False
+    printing = False
+    if(printing):
+        utils.resize_and_show(img, True)
 
-    return 
+    if(val > 0.001):
+        return False
+
+    return True
 
 def testNormalizeLandmarks():
     global img 
-    global idx
     random.seed(10)
 
     points = {}
@@ -154,23 +129,30 @@ def testNormalizeLandmarks():
     stdSqr = totalDistance / len(list)
     std = math.sqrt(stdSqr)
 
-    if(VAR - std < 0.001):
+    if(VAR - std > 0.001):
         return False
 
     return True
 
+def runAllTests():
+
+    result = True
+    result &= testReflectPoint()
+    result &= testCheckSymmetryOfLine()
+    result &= testNormalizeLandmarks()
+
+    if(result == False):
+        print('Tests Failed!')
+    else:
+        print('Tests Passed!')
+
+    return
 
 #degugging code
-#**************
-#testReflectPoint()
-
+#*******************************
 
 #images = {}
 #utils.extractImagesFromVideo('C:\\GIT\\Symmetry\\TestVideos', images, True)
 
-#run Debug code
-
-#testReflectPoint()
-#testCalcSD()
-testCheckSymmetryOfLine()
-#testNormalizeLandmarks()
+#run All Tests Manually
+#runAllTests()

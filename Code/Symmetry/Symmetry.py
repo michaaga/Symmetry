@@ -31,7 +31,7 @@ def inRange(pt):
 
 #return avg ot 2 (X,Y) Dict. points
 def avgPts(p1,p2):
-    return { 'X': (p1['X'] + p2['X'] / 2.0), 'Y': (p1['Y'] + p2['Y']) / 2.0 }
+    return { 'X': (p1['X'] + p2['X']) / 2.0, 'Y': (p1['Y'] + p2['Y']) / 2.0 }
 
 #lineSrc = line point 1; lineDst = line point 2; pt = point to check against.
 def isPointLeftOfLine(lineSrc, lineDst, pt):
@@ -42,29 +42,28 @@ def pointsPairSqrDistance(p1, p2):
     return math.dist([p1['X'], p1['Y']], [p2['X'], p2['Y']])**2
 
 #calculate the symmetry distance between a pair of points
-def calcSD(p0, p1, src, dst):
+def calcSD(p0, p1, src, dst, img = ''):
 
 #from the Alg:
 #a) The two points {P0,P1} are folded to obtain {P0~,P1~}
 #b) Points P0~ and P1~ are averaged to obtain P0^.
 #c) P1^ is obtained by reflecting P0^ about the symmetry axis.
 #d) return SD of the two original points vs (P0^,P1^) <-> (P0,P1)
-  global img
-  global idx 
-
   reflectedPoint = reflectPoint(src, dst, p1)
   
   p0_ = avgPts(p0, reflectedPoint)
   p1_ = reflectPoint(src, dst, p0_)
 
-#   if(inRange(p0_) and inRange(p1_)):
-#     #draw the symmetry line testpoints.
-#     utils.annotatePoint(img, p0, str(idx), (0, 0, 0))
-#     utils.annotatePoint(img, p1, str(idx+1), (0, 0, 0))
+  showPoints = False
 
-#     utils.annotatePoint(img, p0_, str(idx) + '*', (0, 0, 255))
-#     utils.annotatePoint(img, p1_, str(idx+1) + '*', (0, 0, 255))
-#     idx +=2
+  if(inRange(p0_) and inRange(p1_) and showPoints == True):
+     #draw the symmetry line testpoints.
+     utils.annotatePoint(img, p0, str('0'), (0, 0, 0))
+     utils.annotatePoint(img, p1, str('1'), (0, 0, 0))
+     utils.annotatePoint(img, reflectedPoint, str('ref'), (0, 0, 0))
+
+     utils.annotatePoint(img, p0_, str('avg'), (0, 0, 255))
+     utils.annotatePoint(img, p1_, str('refBack'), (0, 0, 255))
 
   return (pointsPairSqrDistance(p0, p0_) + pointsPairSqrDistance(p1, p1_)) / 2.0 
 
@@ -78,7 +77,7 @@ def checkSymmetryOfLine(img, src, dst, points):
         pt2 = pair[1]
 
         #calculate Symmetry line SD
-        totalSD += calcSD(points[pt1], points[pt2], src, dst)
+        totalSD += calcSD(points[pt1], points[pt2], src, dst, img)
 
     return totalSD
 
