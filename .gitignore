@@ -1,11 +1,5 @@
-Code/Symmetry/__pycache__/utils.cpython-38.pyc
-TestImages/N12_02_MS_20 (1).jpg
-TestImages/N12_02_MS_20.jpg
-TestImages/N12_02_MS_40 (1).jpg
-TestImages/N12_02_MS_40.jpg
-TestImages/N12_02_MS_60 (1).jpg
-TestImages/N12_02_MS_60.jpg
-TestImages/N12_02_MS_80 (1).jpg
-TestImages/N12_02_MS_80.jpg
-Code/Symmetry/__pycache__/Symmetry.cpython-38.pyc
-Code/Symmetry/__pycache__/landmarkDefs.cpython-38.pyc
+Code/Symmetry/__pycache__
+Code/Symmetry/TestImages
+Code/Symmetry/TestVideos
+.pytest_cache
+desktop.ini
