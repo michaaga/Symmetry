@@ -4,48 +4,37 @@ import os
 import random
 import math
 import landmarkDefs
+import Symmetry
 
 DESIRED_HEIGHT = 1080
 DESIRED_WIDTH = 1920
-IMAGE_LOAD_SKIP_CNT = 20
 
-#Extract images from video and save to disk (optional)
-def extractImagesFromVideo(path, images, saveToDisk = False):
+#Extract images from a single video and save to disk (optional)
+def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
 
   i = 0 #Skip frams to shorten debugging.
 
-  #create output folder if not exists
-  outPath = os.path.join(path, 'Images')
-  os.makedirs(outPath,exist_ok=True)
+  # Opens the Video file
+  cap= cv2.VideoCapture(videoPath)
+  
+  while(cap.isOpened()):
+      ret, frame = cap.read()
+      if ret == False:
+          break
 
-  #go over all files in directory and extract images by frame index
-  for filename in os.listdir(path):  
+      i+=1
+      if(i % Symmetry.IMAGE_LOAD_SKIP_CNT != 0):
+        continue
 
-      laodStr = os.path.join(path, filename)
-      print('Loading Video:' + laodStr)
+      fName = os.path.splitext(os.path.basename(videoPath))[0] + '_' + str(i)    
+      images[fName] = frame
+      i+=1
 
-      # Opens the Video file
-      cap= cv2.VideoCapture(laodStr)
-      i=0
-
-      while(cap.isOpened()):
-          ret, frame = cap.read()
-          if ret == False:
-              break
-
-          i+=1
-          if(i % IMAGE_LOAD_SKIP_CNT != 0):
-            continue
-
-          fName = os.path.splitext(filename)[0] +  '_' + str(i)
-          images[fName] = frame    
-          i+=1
-
-          if(saveToDisk):
-            cv2.imwrite(os.path.join(outPath, fName + '.jpg'), frame)
-              
-      cap.release()
-      cv2.destroyAllWindows()
+      if(saveToDisk):
+        cv2.imwrite(os.path.join(outPath, fName + '.jpg'), frame)
+          
+  cap.release()
+  cv2.destroyAllWindows()
 
 #load images from folder instead of video for debugging
 def load_images_from_folder(folder, images):
@@ -55,14 +44,14 @@ def load_images_from_folder(folder, images):
           images[filename] = img
 
 #fill the images dictionary
-def getImages(path, images, debugOption = 'VIDEO_FOLDER'):
+def getImages(path, outPath,  images, debugOption = 'VIDEO_FILE'):
 
-#  debugOption = 'VIDEO_FOLDER'
+#  debugOption = 'VIDEO_FILE'
 #  debugOption = 'IMAGE_FOLDER'
 #  debugOption = 'ONE_IMAGE'
 
-  if (debugOption == 'VIDEO_FOLDER'):
-        extractImagesFromVideo(path, images, False)
+  if (debugOption == 'VIDEO_FILE'):
+        extractImagesFromVideo(path, outPath, images, False)
   elif (debugOption == 'IMAGE_FOLDER'):
     load_images_from_folder(path, images)
   else:
@@ -72,7 +61,6 @@ def getImages(path, images, debugOption = 'VIDEO_FOLDER'):
 
     # Preview the images.
   for name, image in images.items():
-    print(name)
     if(debugOption == 'ONE_IMAGE'):
       # Show the image loaded for single image test
       resize_and_show(image, True)

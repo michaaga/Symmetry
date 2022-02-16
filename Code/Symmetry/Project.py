@@ -1,4 +1,5 @@
 from logging import exception
+from matplotlib import image
 import mediapipe as mp
 import cv2
 import os
@@ -19,14 +20,16 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 
+#Run Face Mesh landmark detection on a single image.
 def MpFaceMesh(image):
 
   circleDrawingSpec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1, color=(0,255,0))
 
   #Run FaceMesh on each image to get landmarks
   with mp_face_mesh.FaceMesh(
-      static_image_mode=False,        #Was True, unrelated images (True) or as a video stream (False)
-      max_num_faces=2,
+      static_image_mode=True,        #Was True, unrelated images (True) or as a video stream (False)
+      max_num_faces=1,
+      refine_landmarks=True,
       min_detection_confidence=0.5) as face_mesh:
 
     # Convert the BGR image to RGB and process it with MediaPipe Face Mesh.
@@ -58,6 +61,7 @@ def MpFaceMesh(image):
 
   return results.multi_face_landmarks[0]
 
+#Calculate single image symmetry distance
 def imageSymmetry(image, name, landmarkList):
 
   #run FaceMesh to get landmark points
@@ -108,16 +112,13 @@ def imageSymmetry(image, name, landmarkList):
   #plot the landmarks
   utils.printLandmarkPoints(landmarkImagePoints, scale, image)
 
-  #save
-  #utils.resize_and_show(image, True)
-  cv2.imwrite(os.path.join(ImagesOutPath, name + '.jpg'), image)
-
   return sd, ms
 
-def main():
+#Process all images of a video
+def ProcessImages(videoPath, outPath, images):
   
   #load all images from video/disk
-  utils.getImages(videoFolderPath, images)
+  utils.getImages(videoPath, outPath, images )
   #utils.getImages('C:/GIT/Symmetry/TestImages/test_image.jpg', images, 'ONE_IMAGE')
 
   #create a list from the symmetry tuples
@@ -133,6 +134,10 @@ def main():
     index +=1
 
     sd, ms = imageSymmetry(image, name, landmarkList)
+
+    if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
+      cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
+
     SD_DATA.append(sd)
     MOUTH_SIZE_DATA.append(ms)
 
@@ -148,9 +153,28 @@ def main():
   plt.ylabel('y - axis')
   plt.title('SD & Mouth Size per Frame')
   plt.legend()
-  plt.savefig(videoFolderPath + '\\plot.png')
-  plt.show()
+  plt.savefig(outPath + '\\' + name + '_plot.png')
+  #plt.show()
+  plt.close()
 
+  return
+
+#Process all Videos in a folder
+def ProcessVideoFolder():
+
+  #go over all files in directory and extract images by frame index
+  files = [f for f in os.listdir(videoFolderPath) if os.path.isfile(os.path.join(videoFolderPath, f))]
+
+  for filename in files:  
+      images = {}
+      videoFilePath = os.path.join(videoFolderPath, filename)
+
+      #create a folder for each video images
+      videoOutputPath = os.path.join(ImagesOutPath, os.path.splitext(filename)[0])
+      os.makedirs(videoOutputPath,exist_ok=True)
+
+      print('Loading Video:' + videoFilePath)
+      ProcessImages(videoFilePath, videoOutputPath, images)
   return
 
 #Debug Only Code
@@ -158,10 +182,9 @@ def main():
   #degug: print All landmark markers + numbering on image.
   #utils.printLandmarkPoints(landmarkImagePoints, image)
 
-
 #Run
 
-main()
+ProcessVideoFolder()
 
 
 
