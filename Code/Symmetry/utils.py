@@ -22,7 +22,6 @@ def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
       if ret == False:
           break
 
-      i+=1
       if(i % Symmetry.IMAGE_LOAD_SKIP_CNT != 0):
         continue
 

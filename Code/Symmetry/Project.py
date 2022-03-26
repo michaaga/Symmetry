@@ -1,3 +1,4 @@
+from ctypes import util
 from logging import exception
 from matplotlib import image
 import mediapipe as mp
@@ -114,8 +115,19 @@ def imageSymmetry(image, name, landmarkList):
 
   return sd, ms
 
+def filterList(list, ratio):
+  tempList = []
+  for i in range(len(list)):
+    if(i == 0): #skip first element
+      tempList.append(list[i])
+      continue
+
+    tempList.append(list[i] * ratio + tempList[i-1] * (1 - ratio))
+
+  return tempList
+
 #Process all images of a video
-def ProcessImages(videoPath, outPath, images):
+def ProcessImages(videoPath, filename, outPath, images, filter = True):
   
   #load all images from video/disk
   utils.getImages(videoPath, outPath, images )
@@ -129,6 +141,10 @@ def ProcessImages(videoPath, outPath, images):
   MOUTH_SIZE_DATA = []
   xVal = list(range(0, len(images)))
 
+ # choose codec according to format needed
+  fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+  video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30, (utils.DESIRED_HEIGHT, utils.DESIRED_WIDTH))
+
   for name, image in images.items():
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
@@ -138,11 +154,26 @@ def ProcessImages(videoPath, outPath, images):
     if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
 
+    #add data for plot
     SD_DATA.append(sd)
     MOUTH_SIZE_DATA.append(ms)
 
-  ratio = max(SD_DATA) / max(MOUTH_SIZE_DATA)
+    #add frame to output video.
+    video.write(image)
 
+  #close video stream
+  cv2.destroyAllWindows()
+  video.release()
+
+  #filter data
+  if(filter):
+    FILTER_CONST = 0.5
+    SD_DATA = filterList(SD_DATA, FILTER_CONST)
+    MOUTH_SIZE_DATA = filterList(MOUTH_SIZE_DATA, FILTER_CONST)
+
+  #align a linear ratio for a visible graph
+  ratio = max(SD_DATA) / max(MOUTH_SIZE_DATA)
+  
   #align plot
   for i in range(len(MOUTH_SIZE_DATA)):
     MOUTH_SIZE_DATA[i] = MOUTH_SIZE_DATA[i] * ratio
@@ -153,9 +184,11 @@ def ProcessImages(videoPath, outPath, images):
   plt.ylabel('y - axis')
   plt.title('SD & Mouth Size per Frame')
   plt.legend()
-  plt.savefig(outPath + '\\' + name + '_plot.png')
+  plt.savefig(outPath + '\\' + filename + '_plot.png')
   #plt.show()
   plt.close()
+
+
 
   return
 
@@ -169,12 +202,16 @@ def ProcessVideoFolder():
       images = {}
       videoFilePath = os.path.join(videoFolderPath, filename)
 
+      if ".mp4" not in videoFilePath:
+        print('Skipping file :' + videoFilePath)
+        continue
+
       #create a folder for each video images
       videoOutputPath = os.path.join(ImagesOutPath, os.path.splitext(filename)[0])
       os.makedirs(videoOutputPath,exist_ok=True)
 
       print('Loading Video:' + videoFilePath)
-      ProcessImages(videoFilePath, videoOutputPath, images)
+      ProcessImages(videoFilePath, filename, videoOutputPath, images)
   return
 
 #Debug Only Code
