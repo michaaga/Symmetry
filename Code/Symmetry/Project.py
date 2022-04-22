@@ -76,8 +76,8 @@ def imageSymmetry(image, name, landmarkList):
   guideImagePoints    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
 
   #find and print face reference line
-  refLineSrc = guideImagePoints[9]
-  refLineDst = guideImagePoints[94]
+  refLineSrc = guideImagePoints[landmarkDefs.LEFT_MARKER]
+  refLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
 
   utils.drawLineOnImage(image, refLineSrc, refLineDst, scale)
   refLineAngle = utils.get_angle(refLineSrc, refLineDst)
@@ -171,12 +171,23 @@ def ProcessImages(videoPath, filename, outPath, images, filter = True):
     SD_DATA = filterList(SD_DATA, FILTER_CONST)
     MOUTH_SIZE_DATA = filterList(MOUTH_SIZE_DATA, FILTER_CONST)
 
+  MAX_VALUE = 1000
+  
   #align a linear ratio for a visible graph
   ratio = max(SD_DATA) / max(MOUTH_SIZE_DATA)
   
-  #align plot
+  rangeMouthOpen = max(MOUTH_SIZE_DATA) - min(MOUTH_SIZE_DATA)
+  minMouthOpen = min(MOUTH_SIZE_DATA)
+
+  rangeSD = max(SD_DATA) - min(SD_DATA)
+  minSD = min(SD_DATA)
+
+  #Normalize data to be shown in the plot
   for i in range(len(MOUTH_SIZE_DATA)):
-    MOUTH_SIZE_DATA[i] = MOUTH_SIZE_DATA[i] * ratio
+    MOUTH_SIZE_DATA[i] = utils.normalizeValue(MOUTH_SIZE_DATA[i], minMouthOpen, rangeMouthOpen, 0, 1000)
+
+  for i in range(len(SD_DATA)):
+    SD_DATA[i] = utils.normalizeValue(SD_DATA[i], minSD, rangeSD, 0, 1000)
 
   plt.plot(xVal, SD_DATA, label = "SD")
   plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening") 
@@ -187,8 +198,6 @@ def ProcessImages(videoPath, filename, outPath, images, filter = True):
   plt.savefig(outPath + '\\' + filename + '_plot.png')
   #plt.show()
   plt.close()
-
-
 
   return
 

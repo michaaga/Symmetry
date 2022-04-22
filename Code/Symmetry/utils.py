@@ -161,6 +161,7 @@ def get_angle(p1, p2):
     return angle
 
 def createLandmarkList():
+
   landmarkList = []
   for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
     if x[0] in landmarkList or x[1] in landmarkList:
@@ -172,3 +173,7 @@ def createLandmarkList():
       landmarkList.append(x[1])
     
   return landmarkList
+
+#return normalized value in values from normMin to normMax
+def normalizeValue(value, valMin, valRange, normMin, normMax):
+  return normMin + (((value - valMin) * (normMax - normMin)) / valRange)
