@@ -1,9 +1,9 @@
 Code/Symmetry/__pycache__
-Code/Symmetry/TestImages/*
-Code/Symmetry/TestVideos/*
+/TestImages/*
+/TestVideos/*
 .pytest_cache
+.tmp.driveupload/*
 desktop.ini
-Code/Symmetry/.vscode/desktop.ini
 *.jpg
 *.ini
 *.png
