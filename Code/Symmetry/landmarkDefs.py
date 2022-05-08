@@ -1,5 +1,5 @@
 
-LIPS_LANDMARK_SYMMTERY = [
+LIPS_VERTICAL_LANDMARK_SYMMTERY = [
 
                             #Center Line - 3 (Left)
                             (40,91),
@@ -44,17 +44,17 @@ LIPS_LANDMARK_SYMMTERY = [
                             #(310,318)
                         ]
 
-                             ##################################################### OLD
+LIPS_HORIZONTAL_LANDMARK_SYMMTERY = [
                             #most external segment, big numbers on the right (upper point 0, lower point 17)
-                            #(267, 37),
-                            #(269, 39),
-                            #(270, 40),
-                            #(409, 185), 
+                            (267, 37),
+                            (269, 39),
+                            (270, 40),
+                            (409, 185), 
                             #(287, 57),
-                            #(375, 146),
-                            #(321, 91),
-                            #(405, 181),
-                            #(314, 84),
+                            (375, 146),
+                            (321, 91),
+                            (405, 181),
+                            (314, 84),
 
                             # #2nd external (upper point 11, lower point 16)
                             # (302, 72),
@@ -77,15 +77,15 @@ LIPS_LANDMARK_SYMMTERY = [
                             # (316, 86),
 
                             #4th external (upper point 13, lower point 14 )
-                            #(312, 82),
-                            #(311, 81),
-                            #(310, 80),
-                            #(415, 191),
-                            #(317, 87),
-                            #(402, 178),
-                            #(318, 88),
-                            #(324, 95),
-                            #(308, 78) ]
+                            (312, 82),
+                            (311, 81),
+                            (310, 80),
+                            (415, 191),
+                            (317, 87),
+                            (402, 178),
+                            (318, 88),
+                            (324, 95),
+                            (308, 78) ]
 
 #remove later
 LIPS_LANDMARKS = [ 61,
@@ -129,9 +129,12 @@ LIPS_LANDMARKS = [ 61,
                   310,
                   415]
 
+UP_MARKER = 9
+DOWN_MARKER = 94
 LEFT_MARKER = 78 # left lips point
 RIGHT_MARKER = 308 # right lips point
-FACE_GUIDE = [9, 94, 13, 14, LEFT_MARKER, RIGHT_MARKER ] #Middle of forhead to endn of nose ref. line + lips up and down
+
+FACE_GUIDE = [9, 94, 13, 14, LEFT_MARKER, RIGHT_MARKER, UP_MARKER, DOWN_MARKER ] #Middle of forhead to endn of nose ref. line + lips up and down
 
 MY_FACE_CONNECTIONS = frozenset([
     # Lips.

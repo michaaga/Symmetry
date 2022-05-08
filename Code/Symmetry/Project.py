@@ -75,45 +75,44 @@ def imageSymmetry(image, name, landmarkList):
   landmarkImagePoints = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
   guideImagePoints    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
 
-  #find and print face reference line
-  refLineSrc = guideImagePoints[landmarkDefs.LEFT_MARKER]
-  refLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
+  #find and print face reference line - Vertical
+  verticalRefLineSrc = guideImagePoints[landmarkDefs.LEFT_MARKER]
+  verticalLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
 
-  utils.drawLineOnImage(image, refLineSrc, refLineDst, scale)
-  refLineAngle = utils.get_angle(refLineSrc, refLineDst)
+  utils.drawLineOnImage(image, verticalRefLineSrc, verticalLineDst, scale)
+  verticalRefLineAngle = utils.get_angle(verticalRefLineSrc, verticalLineDst)
+
+  #find and print face reference line - Horizontal
+  horizontalRefLineSrc = guideImagePoints[landmarkDefs.UP_MARKER]
+  horizontalLineDst = guideImagePoints[landmarkDefs.DOWN_MARKER]
+
+  utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalLineDst, scale)
+  horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalLineDst)
 
   #find and print landmarks center
   #center = Symmetry.centerMass(landmarkImagePoints)
   #utils.annotatePoint(image, center, 'CM')
 
   #run Symmetry Alg while using the face ref line as the symmetry line.
-  sd = (Symmetry.checkSymmetryOfLine(image, refLineSrc, refLineDst, landmarkImagePoints))
-
-  angle = 0 # MISSING CALCULATION FOR ANGLE DERIVED FROM POINTS
-  #keep the angles from 0 to 180.
-  if(angle > 180):
-    angle = angle - 180
-
-  #plot the "best" symmetry line from the center
-  #lineLength = 100
-  #dstX = center['X'] + lineLength * math.cos(math.radians(angle))
-  #dstY = center['Y'] + lineLength * math.sin(math.radians(angle))
-  #dst = {'X': dstX, 'Y': dstY}
-  #utils.drawLineOnImage(image, center, dst, (0,0,255))
-  
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalLineDst, landmarkImagePoints, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalLineDst, landmarkImagePoints, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
+ 
   #get mouth size + SF
   ms = (guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']) / scale
 
   #add Text Info On Images
   utils.addTextOnImage(image, name, (50, 50))
-  utils.addTextOnImage(image, 'SD = ' + str(sd), (50, 100))
-  utils.addTextOnImage(image, 'Face Line Angle = ' + str(refLineAngle), (50, 200))
-  utils.addTextOnImage(image, 'Mouth Size = ' + str(ms), (50, 300))
+  utils.addTextOnImage(image, 'Mouth Size = ' + str(ms), (50, 100))
+  utils.addTextOnImage(image, 'Vertical SD   : ' + str(VerticalSD), (50, 150))
+  utils.addTextOnImage(image, 'Vertical Face Line Angle = ' + str(verticalRefLineAngle), (50, 200))
+  utils.addTextOnImage(image, 'Horizontal SD : ' + str(HorizontalSD), (50, 250))
+  utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(horizontalRefLineAngle), (50, 300))
+
 
   #plot the landmarks
   utils.printLandmarkPoints(landmarkImagePoints, scale, image)
 
-  return sd, ms
+  return VerticalSD, HorizontalSD, ms
 
 def filterList(list, ratio):
   tempList = []
@@ -137,7 +136,8 @@ def ProcessImages(videoPath, filename, outPath, images, filter = True):
   landmarkList = utils.createLandmarkList()
 
   index = 0
-  SD_DATA = []
+  SD_DATA_VERT = []
+  SD_DATA_HOR = []
   MOUTH_SIZE_DATA = []
   xVal = list(range(0, len(images)))
 
@@ -149,13 +149,14 @@ def ProcessImages(videoPath, filename, outPath, images, filter = True):
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
 
-    sd, ms = imageSymmetry(image, name, landmarkList)
+    sdVert, sdHor, ms = imageSymmetry(image, name, landmarkList)
 
     if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
 
     #add data for plot
-    SD_DATA.append(sd)
+    SD_DATA_VERT.append(sdVert)
+    SD_DATA_HOR.append(sdHor)
     MOUTH_SIZE_DATA.append(ms)
 
     #add frame to output video.
@@ -168,35 +169,47 @@ def ProcessImages(videoPath, filename, outPath, images, filter = True):
   #filter data
   if(filter):
     FILTER_CONST = 0.5
-    SD_DATA = filterList(SD_DATA, FILTER_CONST)
+    SD_DATA_VERT = filterList(SD_DATA_VERT, FILTER_CONST)
+    SD_DATA_HOR = filterList(SD_DATA_HOR, FILTER_CONST)
     MOUTH_SIZE_DATA = filterList(MOUTH_SIZE_DATA, FILTER_CONST)
 
   MAX_VALUE = 1000
   
   #align a linear ratio for a visible graph
-  ratio = max(SD_DATA) / max(MOUTH_SIZE_DATA)
+  ratio = max(SD_DATA_VERT) / max(MOUTH_SIZE_DATA)
   
+  #Normalize mouth size values
   rangeMouthOpen = max(MOUTH_SIZE_DATA) - min(MOUTH_SIZE_DATA)
   minMouthOpen = min(MOUTH_SIZE_DATA)
-
-  rangeSD = max(SD_DATA) - min(SD_DATA)
-  minSD = min(SD_DATA)
-
-  #Normalize data to be shown in the plot
+  
   for i in range(len(MOUTH_SIZE_DATA)):
     MOUTH_SIZE_DATA[i] = utils.normalizeValue(MOUTH_SIZE_DATA[i], minMouthOpen, rangeMouthOpen, 0, 1000)
 
-  for i in range(len(SD_DATA)):
-    SD_DATA[i] = utils.normalizeValue(SD_DATA[i], minSD, rangeSD, 0, 1000)
 
-  plt.plot(xVal, SD_DATA, label = "SD")
+  #normalize vertical values
+  rangeSDVert = max(SD_DATA_VERT) - min(SD_DATA_VERT)
+  minSDVert = min(SD_DATA_VERT)
+
+  for i in range(len(SD_DATA_VERT)):
+    SD_DATA_VERT[i] = utils.normalizeValue(SD_DATA_VERT[i], minSDVert, rangeSDVert, 0, 1000)
+
+  #normalize horizontal values
+  rangeSDHor = max(SD_DATA_HOR) - min(SD_DATA_HOR)
+  minSDHor = min(SD_DATA_HOR)
+
+  for i in range(len(SD_DATA_HOR)):
+    SD_DATA_HOR[i] = utils.normalizeValue(SD_DATA_HOR[i], minSDHor, rangeSDHor, 0, 1000)
+
+
+  plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
+  plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
   plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening") 
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('SD & Mouth Size per Frame')
   plt.legend()
   plt.savefig(outPath + '\\' + filename + '_plot.png')
-  #plt.show()
+ #plt.show()
   plt.close()
 
   return

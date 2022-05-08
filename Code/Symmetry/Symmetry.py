@@ -70,11 +70,11 @@ def calcSD(p0, p1, src, dst, img = ''):
   return (pointsPairSqrDistance(p0, p0_) + pointsPairSqrDistance(p1, p1_)) / 2.0 
 
 #calculate SD for a specific symmetry line
-def checkSymmetryOfLine(img, src, dst, points):
+def checkSymmetryOfLine(img, src, dst, points, symmetryLine):
 
     #go over all symmtery matches and calculate symmetry.
     totalSD = 0
-    for pair in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+    for pair in symmetryLine:
         pt1 = pair[0]
         pt2 = pair[1]
 

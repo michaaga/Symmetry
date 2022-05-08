@@ -64,7 +64,7 @@ def testCheckSymmetryOfLine():
     points = {}
 
     #create test points across the horizonal line
-    for pair in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+    for pair in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
         pt1 = pair[0]
         pt2 = pair[1]
 

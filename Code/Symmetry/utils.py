@@ -125,7 +125,7 @@ def getAllLandmarksData(landmarks):
 #debug: test method to check position of landmark points..
 def printLandmarkPoints(landmarkImagePoints, scale, img):
   font = cv2.FONT_HERSHEY_SIMPLEX
-  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , (255,0,0), 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , (0,0,255), 0, 3)
     #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
@@ -163,7 +163,7 @@ def get_angle(p1, p2):
 def createLandmarkList():
 
   landmarkList = []
-  for x in landmarkDefs.LIPS_LANDMARK_SYMMTERY:
+  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
     if x[0] in landmarkList or x[1] in landmarkList:
       print ("duplicate found!!!!!!!!!!")
       return
@@ -172,6 +172,16 @@ def createLandmarkList():
       landmarkList.append(x[0])
       landmarkList.append(x[1])
     
+
+  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+    if x[0] in landmarkList or x[1] in landmarkList:
+      print ("duplicate found!!!!!!!!!!")
+      #return
+
+    else:  
+      landmarkList.append(x[0])
+      landmarkList.append(x[1])
+
   return landmarkList
 
 #return normalized value in values from normMin to normMax
