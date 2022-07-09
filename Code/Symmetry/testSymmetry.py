@@ -52,7 +52,7 @@ def testReflectPoint():
 
     return True
 
-def testCheckSymmetryOfLine():
+def testVerticalSymmetryOfLine():
     global img 
     random.seed(10)
 
@@ -60,41 +60,70 @@ def testCheckSymmetryOfLine():
     center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
     utils.annotatePoint(img, center, str('C'), (0, 255, 0))
 
-
-    points = {}
+    srcLinePoint = {'X': center['X'] - 400, 'Y': center['Y']}
+    dstLinePoint = {'X': center['X'] + 400, 'Y': center['Y']}
+    
+    #draw Symmetry line
+    utils.drawLineOnImage(img, srcLinePoint, dstLinePoint)
 
     #create test points across the horizonal line
+    points = {}
     for pair in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
         pt1 = pair[0]
         pt2 = pair[1]
 
-        deltaX =  random.randint(0, Symmetry.WIDTH /2)
+        PointX =  random.randint(0, Symmetry.WIDTH)
         deltaY =  random.randint(0, Symmetry.HEIGHT /2)
-        dstX = center['X'] + deltaX
-        dstY = center['Y'] + deltaY
-        points[pt1] = {'X': dstX, 'Y': dstY}
-
-        dstX = center['X'] - deltaX
-        points[pt2] = {'X': dstX, 'Y': dstY}
-
-    #calculate Dst point to angle
-    angle = 90
-    lineLength = 500
-
-    dstX = center['X'] + lineLength * math.cos(math.radians(angle))
-    dstY = center['Y'] + lineLength * math.sin(math.radians(angle))
-    dst = {'X': dstX, 'Y': dstY}
-
-    #draw Symmetry line
-    img = cv2.line(img, ((int)(center['X']), (int)(center['Y'])), ((int)(dst['X']), (int)(dst['Y'])), (0, 0, 0), 5)
+        points[pt1] = {'X': PointX, 'Y': center['Y'] + deltaY}
+        points[pt2] = {'X': PointX, 'Y': center['Y'] - deltaY}
+        utils.annotatePoint(img, points[pt1])
+        utils.annotatePoint(img, points[pt2])
+        utils.drawLineOnImage(img, points[pt1], points[pt2])
 
     #calculate Symmetry line SD
-    val = Symmetry.checkSymmetryOfLine(img, center, dst, points)
-    print("value is: %d", val)
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY )
 
-    printing = False
-    if(printing):
-        utils.resize_and_show(img, True)
+    #if __debug__:
+    #    utils.resize_and_show(img, True)
+
+    if(val > 0.001):
+        return False
+
+    return True
+
+def testHorizonatalSymmetryOfLine():
+    global img 
+    random.seed(10)
+
+    img = cv2.imread(testImgPath)
+    center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
+    utils.annotatePoint(img, center, str('C'), (0, 255, 0))
+
+    srcLinePoint = {'X': center['X'], 'Y': center['Y']  - 400}
+    dstLinePoint = {'X': center['X'], 'Y': center['Y']  + 400}
+    
+    #draw Symmetry line
+    utils.drawLineOnImage(img, srcLinePoint, dstLinePoint)
+
+    #create test points across the horizonal line
+    points = {}
+    for pair in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+        pt1 = pair[0]
+        pt2 = pair[1]
+
+        PointY =  random.randint(0, Symmetry.HEIGHT)
+        deltaX =  random.randint(0, Symmetry.WIDTH /2)
+        points[pt1] = {'X': center['X'] + deltaX , 'Y': PointY}
+        points[pt2] = {'X': center['X'] - deltaX , 'Y': PointY}
+        utils.annotatePoint(img, points[pt1])
+        utils.annotatePoint(img, points[pt2])
+        utils.drawLineOnImage(img, points[pt1], points[pt2])
+
+    #calculate Symmetry line SD
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY )
+
+    #if __debug__:
+    #    utils.resize_and_show(img, True)
 
     if(val > 0.001):
         return False
@@ -137,14 +166,16 @@ def testNormalizeLandmarks():
 def runAllTests():
 
     result = True
-    result &= testReflectPoint()
-    result &= testCheckSymmetryOfLine()
-    result &= testNormalizeLandmarks()
+    for i in range(1, 100):
+        result &= testReflectPoint()
+        result &= testVerticalSymmetryOfLine()
+        result &= testHorizonatalSymmetryOfLine()
+        result &= testNormalizeLandmarks()
+        if(result == False):
+            print('Tests Failed!')
+            return
 
-    if(result == False):
-        print('Tests Failed!')
-    else:
-        print('Tests Passed!')
+    print('Tests Passed!')
 
     return
 
@@ -155,4 +186,4 @@ def runAllTests():
 #utils.extractImagesFromVideo('C:\\GIT\\Symmetry\\TestVideos', images, True)
 
 #run All Tests Manually
-#runAllTests()
+runAllTests()

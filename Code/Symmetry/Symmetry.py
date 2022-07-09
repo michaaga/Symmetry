@@ -70,11 +70,11 @@ def calcSD(p0, p1, src, dst, img = ''):
   return (pointsPairSqrDistance(p0, p0_) + pointsPairSqrDistance(p1, p1_)) / 2.0 
 
 #calculate SD for a specific symmetry line
-def checkSymmetryOfLine(img, src, dst, points, symmetryLine):
+def checkSymmetryOfLine(img, src, dst, points, symmetryIndexes):
 
-    #go over all symmtery matches and calculate symmetry.
+    #go over all symmtery matche Indexes and calculate symmetry over the line (src,dst)
     totalSD = 0
-    for pair in symmetryLine:
+    for pair in symmetryIndexes:
         pt1 = pair[0]
         pt2 = pair[1]
 

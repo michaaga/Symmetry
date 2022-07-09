@@ -98,7 +98,7 @@ def addTextOnImage(image, text, pos):
   return cv2.putText(image, text, pos, font, 1, (0, 0, 0), 2, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
-def drawLineOnImage(image, src, dest, scale, color = (0,0,0)):
+def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
   height, width, channels = image.shape
   image = cv2.line(image, ((int)(src['X'] / scale), (int)(src['Y'] / scale)), ((int)(dest['X'] / scale ), (int)(dest['Y'] / scale)), color, 2)
 
