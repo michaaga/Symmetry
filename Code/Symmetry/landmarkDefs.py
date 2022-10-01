@@ -1,5 +1,15 @@
+
+SD_MAX_NORM_VALUE = 30000
+SD_MIN_NORM_VALUE = 0
+
+MOUTH_SIZE_MAX_NORM_VALUE = 26000
+MOUTH_SIZE_MIN_NORM_VALUE = 25000
+
+SD_FILTER_CONST = 0.5
+LANDMARK_FILTER_CONST = 0.5
+
 #up-down landmarks sets of 2 points, to pronounce the vertical symmetry of a face.
-LIPS_VERTICAL_LANDMARK_SYMMTERY = [
+LIPS_VERTICAL_LANDMARK_SYMMETRY = [
 
                             #Center Line - 3 (Left)
                             (40,91),
@@ -45,7 +55,7 @@ LIPS_VERTICAL_LANDMARK_SYMMTERY = [
                         ]
 
 #right-left landmarks sets of 2 points, to pronounce the Horizontal symmetry of a face.
-LIPS_HORIZONTAL_LANDMARK_SYMMTERY = [
+LIPS_HORIZONTAL_LANDMARK_SYMMETRY = [
                             #most external segment, big numbers on the right (upper point 0, lower point 17)
                             (267, 37),
                             (269, 39),

@@ -20,9 +20,6 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 
-SD_FILTER_CONST = 0.5
-LANDMARK_FILTER_CONST = 0.5
-
 prevNormLandmarks = {}
 
 debug = 1
@@ -81,13 +78,13 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 #    utils.printLandmarkPoints(imageLandmarks, 1, image)
 #    utils.resize_and_show(image, True)
 
-  #convert Image points to Normlized Scale of NORM_VAR
+  #convert Image points to Normalized Scale of NORM_VAR
   normLandmarks, scale, var = Symmetry.normalizeLandmarks(imageLandmarks, NORM_VAR)
 
   if filterLandmarks:
     global prevNormLandmarks
     if len(prevNormLandmarks) > 0:
-      utils.filterDictionary(normLandmarks, prevNormLandmarks, LANDMARK_FILTER_CONST)
+      utils.filterDictionary(normLandmarks, prevNormLandmarks, landmarkDefs.LANDMARK_FILTER_CONST)
 
     prevNormLandmarks = normLandmarks.copy()
 
@@ -99,7 +96,7 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
   #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
   landmarkImagePointsNorm = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
-  guideImagePoints    = utils.getFilteredLandmarkData(imageLandmarks, landmarkDefs.FACE_GUIDE)  
+  guideImagePoints        = utils.getFilteredLandmarkData(imageLandmarks, landmarkDefs.FACE_GUIDE)  
   guideImagePointsNorm    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
 
   ## Vertical Section ##
@@ -134,19 +131,17 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #utils.annotatePoint(image, center, 'CM')
 
   #run Symmetry Alg while using the face ref line as the symmetry line.
-  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
-  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
+  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
-  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
-  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
-
   #get mouth size + SF
-  msNorm = (guideImagePointsNorm[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale
-  ms = (guideImagePoints[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale
+  msNorm = abs((guideImagePointsNorm[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
+  ms = abs((guideImagePoints[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
 
-
-  #Embedd Text labels On Images
+  #Embedded Text labels On Images
   utils.addTextOnImage(image, name, True)
   utils.addTextOnImage(image, 'Mouth Size = ' + str(ms))
   utils.addTextOnImage(image, 'Mouth Size (Norm)= ' + str(msNorm))
@@ -168,7 +163,7 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   return VerticalSDNorm, HorizontalSDNorm, msNorm
 
 #Process all images of a video
-def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False, filterSD = False, normSD = False):
+def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False, normSD = False, filterSD = False):
   
   #load all images from video/disk
   utils.getImages(videoPath, outPath, images )
@@ -207,41 +202,7 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   cv2.destroyAllWindows()
   video.release()
 
-  #filter data
-  if filterSD:
-    SD_DATA_VERT = utils.filterList(SD_DATA_VERT, SD_FILTER_CONST)
-    SD_DATA_HOR = utils.filterList(SD_DATA_HOR, SD_FILTER_CONST)
-    MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, SD_FILTER_CONST)
-
-  if normSD:
-      MAX_NORM_VALUE = 1000
-      MIN_NORM_VALUE = 0
-      
-      #align a linear ratio for a visible graph
-      ratio = max(SD_DATA_VERT) / max(MOUTH_SIZE_DATA)
-      
-      #Normalize mouth size values
-      rangeMouthOpen = max(MOUTH_SIZE_DATA) - min(MOUTH_SIZE_DATA)
-      minMouthOpen = min(MOUTH_SIZE_DATA)
-      
-      for i in range(len(MOUTH_SIZE_DATA)):
-        MOUTH_SIZE_DATA[i] = utils.normalizeValue(MOUTH_SIZE_DATA[i], minMouthOpen, rangeMouthOpen, MIN_NORM_VALUE, MAX_NORM_VALUE)
-
-      #normalize vertical values
-      rangeSDVert = max(SD_DATA_VERT) - min(SD_DATA_VERT)
-      minSDVert = min(SD_DATA_VERT)
-
-      for i in range(len(SD_DATA_VERT)):
-        SD_DATA_VERT[i] = utils.normalizeValue(SD_DATA_VERT[i], minSDVert, rangeSDVert, MIN_NORM_VALUE, MAX_NORM_VALUE)
-
-      #normalize horizontal values
-      rangeSDHor = max(SD_DATA_HOR) - min(SD_DATA_HOR)
-      minSDHor = min(SD_DATA_HOR)
-
-      for i in range(len(SD_DATA_HOR)):
-        SD_DATA_HOR[i] = utils.normalizeValue(SD_DATA_HOR[i], minSDHor, rangeSDHor, MIN_NORM_VALUE, MAX_NORM_VALUE)
-
-
+  # Plot Raw Data
   plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
   plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
   plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening")
@@ -250,8 +211,42 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   plt.title('SD & Mouth Size per Frame')
   plt.legend()
   plt.savefig(outPath + '\\' + filename + '_plot.png')
- #plt.show()
+  #plt.show()
   plt.close()
+
+  if normSD:
+    utils.normalizeList(MOUTH_SIZE_DATA, landmarkDefs.MOUTH_SIZE_MIN_NORM_VALUE, landmarkDefs.MOUTH_SIZE_MAX_NORM_VALUE)
+    utils.normalizeList(SD_DATA_VERT, landmarkDefs.SD_MIN_NORM_VALUE, landmarkDefs.SD_MAX_NORM_VALUE)
+    utils.normalizeList(SD_DATA_HOR, landmarkDefs.SD_MIN_NORM_VALUE, landmarkDefs.SD_MAX_NORM_VALUE)
+ 
+    plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Norm")
+    plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal Norm")
+    plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening Norm")
+    plt.xlabel('Image Frame')
+    plt.ylabel('y - axis')
+    plt.title('SD & Mouth Size per Frame')
+    plt.legend()
+    plt.savefig(outPath + '\\' + filename + '_plot_Norm.png')
+    #plt.show()
+    plt.close()
+
+  #filter data
+  if filterSD:
+    SD_DATA_VERT = utils.filterList(SD_DATA_VERT, landmarkDefs.SD_FILTER_CONST)
+    SD_DATA_HOR = utils.filterList(SD_DATA_HOR, landmarkDefs.SD_FILTER_CONST)
+    MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, landmarkDefs.SD_FILTER_CONST)
+
+    # Plot Filtered Data
+    plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Filtered")
+    plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal Filtered")
+    plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening Filtered")
+    plt.xlabel('Image Frame')
+    plt.ylabel('y - axis')
+    plt.title('SD & Mouth Size per Frame')
+    plt.legend()
+    plt.savefig(outPath + '\\' + filename + '_plot_filter.png')
+    #plt.show()
+    plt.close()
 
   return
 
@@ -274,7 +269,7 @@ def ProcessVideoFolder():
       os.makedirs(videoOutputPath,exist_ok=True)
 
       print('Loading Video:' + videoFilePath)
-      ProcessImages(videoFilePath, filename, videoOutputPath, images, False, False)
+      ProcessImages(videoFilePath, filename, videoOutputPath, images, True, True, False)
   return
 
 def ProcessWebCam():

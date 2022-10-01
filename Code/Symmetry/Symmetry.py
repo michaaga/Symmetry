@@ -126,5 +126,9 @@ def normalizeLandmarks(imageLandmarkDict, avgDist):
     #Square STD value
     resultAvgDist = math.sqrt(totalSqrDistance / len(imageLandmarkDict))
 
+    if((resultAvgDist < (avgDist - 0.005)) or (resultAvgDist > (avgDist + 0.005))):
+        print("Normalization is out of 0.005 scope of Goal!")
+        return -1
+
  
     return normalizedLandmarkDict, totalScale, resultAvgDist

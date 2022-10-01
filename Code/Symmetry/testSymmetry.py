@@ -72,7 +72,7 @@ def testVerticalSymmetryOfLine():
 
     #create test points across the horizonal line
     points = {}
-    for pair in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
+    for pair in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
         pt1 = pair[0]
         pt2 = pair[1]
 
@@ -85,7 +85,7 @@ def testVerticalSymmetryOfLine():
         utils.drawLineOnImage(img, points[pt1], points[pt2])
 
     #calculate Symmetry line SD
-    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY )
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY )
 
     #if __debug__:
     #    utils.resize_and_show(img, True)
@@ -111,7 +111,7 @@ def testHorizonatalSymmetryOfLine():
 
     #create test points across the horizonal line
     points = {}
-    for pair in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+    for pair in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
         pt1 = pair[0]
         pt2 = pair[1]
 
@@ -124,7 +124,7 @@ def testHorizonatalSymmetryOfLine():
         utils.drawLineOnImage(img, points[pt1], points[pt2])
 
     #calculate Symmetry line SD
-    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY )
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY )
 
     #if __debug__:
     #    utils.resize_and_show(img, True)

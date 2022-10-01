@@ -140,9 +140,10 @@ def getAllLandmarksData(landmarks):
 
   return keypoints
 
-#TODO debug: test method to check position of landmark points..
+#method to check position of landmark points..
 def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
   font = cv2.FONT_HERSHEY_SIMPLEX
+  fontSize = 0.4 # Was 0.3
 
   if(normSet):
     verticalColor = (255,0,0)
@@ -151,17 +152,17 @@ def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
     verticalColor = (0,255,0)
     horizontalColor = (125,0,125)
 
-  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
+  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , verticalColor , 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , verticalColor, 0, 3)
-    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
-    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+#   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
+#   img = cv2.putText(img, str(x[1]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 
-  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , horizontalColor, 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , horizontalColor, 0, 3)
-    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
-    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+#   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
+#   img = cv2.putText(img, str(x[1]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 
   return
 
@@ -194,14 +195,14 @@ def get_angle(p1, p2):
 
 def createLandmarkList():
   landmarkList = []
-  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
+  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
     if not (x[0] in landmarkList):
       landmarkList.append(x[0])
       
     if not (x[1] in landmarkList):
       landmarkList.append(x[1])
     
-  for y in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+  for y in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
     if not (y[0] in landmarkList):
       landmarkList.append(y[0])
 
@@ -211,8 +212,12 @@ def createLandmarkList():
   return landmarkList
 
 #return normalized value in values from normMin to normMax
-def normalizeValue(value, valMin, valRange, normMin, normMax):
-  return normMin + (((value - valMin) * (normMax - normMin)) / valRange)
+def normalizeList(values, normMin, normMax):
+    valMin = min(values)
+    valRange = max(values) - valMin
+
+    for i in range(len(values)):
+        values[i] = normMin + (((values[i] - valMin) * (normMax - normMin)) / valRange)
 
 #filter list by ratio
 def filterList(list, ratio):
