@@ -7,7 +7,7 @@ import math
 WIDTH = 1080
 HEIGHT = 1920
 IMAGE_LOAD_SKIP_CNT = 1
-IMAGE_WRITE_SKIP_CNT = 25
+IMAGE_WRITE_SKIP_CNT = 15
 
 #Reflect point p along line through points p0 and p1
 #param p point to reflect

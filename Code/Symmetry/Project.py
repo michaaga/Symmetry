@@ -97,13 +97,14 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #utils.printLandmarkPoints(normLandmarks, 1, image)
   #utils.resize_and_show(image, true)
 
-    
   #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
   landmarkImagePointsNorm = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
   guideImagePoints    = utils.getFilteredLandmarkData(imageLandmarks, landmarkDefs.FACE_GUIDE)  
   guideImagePointsNorm    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
 
-  #find face Norm reference line - Vertical
+  ## Vertical Section ##
+
+  #find face Norm reference line
   verticalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.LEFT_MARKER]
   verticalLineDstNorm = guideImagePointsNorm[landmarkDefs.RIGHT_MARKER]
   verticalRefLineAngleNorm = utils.get_angle(verticalRefLineSrcNorm, verticalLineDstNorm)
@@ -115,12 +116,14 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   utils.drawLineOnImage(image, verticalRefLineSrc, verticalLineDst, scale)
 
 
-  #find and print face reference line - Horizontal
+  ## Horizontal Section ##
+
+  #find and print face reference line
   horizontalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.UP_MARKER]
   horizontalLineDstNorm = guideImagePointsNorm[landmarkDefs.DOWN_MARKER]
   horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalLineDstNorm)
 
-
+  #draw Horizontal ref line from Image Landmarks
   horizontalRefLineSrc = guideImagePoints[landmarkDefs.UP_MARKER]
   horizontalLineDst = guideImagePoints[landmarkDefs.DOWN_MARKER]
   horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalLineDst)
@@ -177,9 +180,9 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   MOUTH_SIZE_DATA = []
   xVal = list(range(0, len(images)))
 
- # choose codec according to format needed
+ # choose codec according to format needed, natural video frame rate is ~30 fps
   fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
-  video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30, (utils.DESIRED_HEIGHT, utils.DESIRED_WIDTH))
+  video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30 / Symmetry.IMAGE_WRITE_SKIP_CNT, (Symmetry.WIDTH, Symmetry.HEIGHT))
 
   prevNormLandmarks = {}
   for name, image in images.items():
@@ -190,14 +193,12 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
     if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
+      video.write(image)    #add frame to output video.
 
     #add data for plot
     SD_DATA_VERT.append(sdVert)
     SD_DATA_HOR.append(sdHor)
     MOUTH_SIZE_DATA.append(ms)
-
-    #add frame to output video.
-    video.write(image)
 
   #close video stream
   cv2.destroyAllWindows()
@@ -312,9 +313,9 @@ def ProcessWebCam():
 
 #Run
 
-#ProcessVideoFolder()
+ProcessVideoFolder()
 
-ProcessWebCam()
+#ProcessWebCam()
 
 
 

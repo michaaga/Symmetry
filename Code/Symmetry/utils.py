@@ -5,12 +5,8 @@ import os
 import random
 import math
 
-from sympy import And
 import landmarkDefs
 import Symmetry
-
-DESIRED_HEIGHT = 1080
-DESIRED_WIDTH = 1920
 
 #Extract images from a single video and save to disk (optional)
 def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
@@ -29,6 +25,13 @@ def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
         continue
 
       fName = os.path.splitext(os.path.basename(videoPath))[0] + '_' + str(i)    
+
+      # TODO: Rotate all videos manually and remove this code.
+      # Using cv2.rotate() method
+      # Using cv2.ROTATE_90_CLOCKWISE rotate
+      # by 90 degrees clockwise
+      frame = cv2.rotate(frame, cv2.ROTATE_180)
+
       images[fName] = frame
       i+=1
 
@@ -81,9 +84,9 @@ def random_color():
 def resize_and_show(image, showImages = False):
     h, w = image.shape[:2]
     if h < w:
-      img = cv2.resize(image, (DESIRED_WIDTH, math.floor(h/(w/DESIRED_WIDTH))))
+      img = cv2.resize(image, (Symmetry.WIDTH, math.floor(h/(w/Symmetry.WIDTH))))
     else:
-      img = cv2.resize(image, (math.floor(w/(h/DESIRED_HEIGHT)), DESIRED_HEIGHT))
+      img = cv2.resize(image, (math.floor(w/(h/Symmetry.HEIGHT)), Symmetry.HEIGHT))
 
     if(showImages):
         cv2.imshow('Image',img)
@@ -102,12 +105,12 @@ def addTextOnImage(image, text, pos):
 
 #draw line from (x,y) to (x,y) on an image.
 def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
-  height, width, channels = image.shape
+  #height, width, channels = image.shape
   image = cv2.line(image, ((int)(src['X'] / scale), (int)(src['Y'] / scale)), ((int)(dest['X'] / scale ), (int)(dest['Y'] / scale)), color, 2)
 
 #convert point to image coordinates
 def convertPointToImageDim(landmarks, idx):
-  point = { 'X': landmarks.landmark[idx].x * DESIRED_HEIGHT, 'Y': landmarks.landmark[idx].y * DESIRED_WIDTH }
+  point = { 'X': landmarks.landmark[idx].x * Symmetry.HEIGHT, 'Y': landmarks.landmark[idx].y * Symmetry.WIDTH }
   return point
 
 #get relevant landmarks only (image coordinates)
