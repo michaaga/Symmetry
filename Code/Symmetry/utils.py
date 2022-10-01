@@ -1,8 +1,11 @@
+from tkinter import Y
 import mediapipe as mp
 import cv2
 import os
 import random
 import math
+
+from sympy import And
 import landmarkDefs
 import Symmetry
 
@@ -103,7 +106,7 @@ def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
   image = cv2.line(image, ((int)(src['X'] / scale), (int)(src['Y'] / scale)), ((int)(dest['X'] / scale ), (int)(dest['Y'] / scale)), color, 2)
 
 #convert point to image coordinates
-def convertPoint(landmarks, idx):
+def convertPointToImageDim(landmarks, idx):
   point = { 'X': landmarks.landmark[idx].x * DESIRED_HEIGHT, 'Y': landmarks.landmark[idx].y * DESIRED_WIDTH }
   return point
 
@@ -117,8 +120,8 @@ def getFilteredLandmarkData(landmarks, filterSet):
 
 def getAllLandmarksData(landmarks):
   keypoints = {}
-  for idx in range(0,468):
-      keypoints[idx] = convertPoint(landmarks, idx)
+  for idx in range(0, len(landmarks.landmark)):
+      keypoints[idx] = convertPointToImageDim(landmarks, idx)
 
   return keypoints
 
@@ -161,29 +164,41 @@ def get_angle(p1, p2):
     return angle
 
 def createLandmarkList():
-
   landmarkList = []
   for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
-    if x[0] in landmarkList or x[1] in landmarkList:
-      print ("duplicate found!!!!!!!!!!")
-      return
-
-    else:  
+    if not (x[0] in landmarkList):
       landmarkList.append(x[0])
+      
+    if not (x[1] in landmarkList):
       landmarkList.append(x[1])
     
+  for y in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+    if not (y[0] in landmarkList):
+      landmarkList.append(y[0])
 
-  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
-    if x[0] in landmarkList or x[1] in landmarkList:
-      print ("duplicate found!!!!!!!!!!")
-      #return
-
-    else:  
-      landmarkList.append(x[0])
-      landmarkList.append(x[1])
+    if not (y[1] in landmarkList):
+      landmarkList.append(y[1])
 
   return landmarkList
 
 #return normalized value in values from normMin to normMax
 def normalizeValue(value, valMin, valRange, normMin, normMax):
   return normMin + (((value - valMin) * (normMax - normMin)) / valRange)
+
+#filter list by ratio
+def filterList(list, ratio):
+  tempList = []
+  for i in range(len(list)):
+    if(i == 0): #skip first element
+      tempList.append(list[i])
+      continue
+
+    tempList.append(list[i] * ratio + tempList[i-1] * (1 - ratio))
+
+  return tempList
+
+#filter Dictionary by prev Dict. and a given Ratio
+def filterDictionary(dict, prevDict, ratio):
+  for i in dict.keys():
+    dict[i]['X']  = dict[i]['X'] * ratio + prevDict[i]['X'] * (1 - ratio)
+    dict[i]['Y']  = dict[i]['Y'] * ratio + prevDict[i]['Y'] * (1 - ratio)

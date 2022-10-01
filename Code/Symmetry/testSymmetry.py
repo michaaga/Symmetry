@@ -1,12 +1,16 @@
+from statistics import NormalDist
+from sqlalchemy import false
 import Symmetry
 import utils
 import random
 import cv2
 import math
 import landmarkDefs
+import matplotlib.pylab as plt
+
 
 #return random values in H/W ranges
-def randX(): return random.randint(5,1080 - 5)
+def randX(): return random.randint(5,Symmetry.WIDTH - 5)
 def randY(): return random.randint(5,Symmetry.HEIGHT - 5)
 
 #test Symmetry distance of points
@@ -135,31 +139,34 @@ def testNormalizeLandmarks():
     random.seed(10)
 
     points = {}
-    VAR = 100
+    VAR = 300
+    testListX = []
+    testListY = []
 
-    #create test points
+    #create & plot test points
     for i in range(1,1000):
-        pt1 = {'X': randX(), 'Y': randY()}
-        pt2 = {'X': randX(), 'Y': randY()}
-        points[i] = pt1
-        points[i] = pt2
+        pt = {'X': randX(), 'Y': randY()}
+        points[i] = pt
+        testListX.append(pt['X'])
+        testListY.append(pt['Y'])
 
-    pointsCenter = Symmetry.centerMass(points)
+#   plt.scatter(testListX, testListY)
+#   plt.show()
 
-    list, scale = Symmetry.normalizeLandmarks(points, VAR)
-    NormMean = Symmetry.centerMass(list)
+    #Normalize and plot normalized points
+    testListXNorm = []
+    testListYNorm = []
+    Normlist, NormScale, var1 = Symmetry.normalizeLandmarks(points, VAR)
+    for item in Normlist.items():
+        testListXNorm.append(item[1]['X'])
+        testListYNorm.append(item[1]['Y'])
 
-    #calculate the avg sqr distance to the center.
-    totalDistance = 0
-    for p in list.items():
-        totalDistance += Symmetry.pointsPairSqrDistance(NormMean, p[1])
+    diff = abs(VAR - var1)
+    if  diff > 0.005:
+        return false
 
-    #avg the sqr distance
-    stdSqr = totalDistance / len(list)
-    std = math.sqrt(stdSqr)
-
-    if(VAR - std > 0.001):
-        return False
+#   plt.scatter(testListXNorm, testListYNorm)
+#   plt.show()
 
     return True
 
@@ -187,3 +194,4 @@ def runAllTests():
 
 #run All Tests Manually
 runAllTests()
+#testNormalizeLandmarks()

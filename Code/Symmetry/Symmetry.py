@@ -98,24 +98,33 @@ def centerMass(points):
 
   return {'X': center_x,'Y': center_y}
 
-def normalizeLandmarks(landmarkList, var):
+def normalizeLandmarks(imageLandmarkDict, avgDist):
 
-    mean = centerMass(landmarkList)
+    mean = centerMass(imageLandmarkDict)
 
     #calculate the avg sqr distance to the center.
-    totalDistance = 0
-    for p in landmarkList.items():
-        totalDistance += pointsPairSqrDistance(mean, p[1])
+    totalSqrDistance = 0
+    for p in imageLandmarkDict.items():
+        totalSqrDistance += pointsPairSqrDistance(mean, p[1])
 
     #Square STD value
-    stdSqr = totalDistance / len(landmarkList)
+    var = totalSqrDistance / len(imageLandmarkDict)
 
-    normalizedList = {}
-    scale = var / math.sqrt(stdSqr)
-    for p in landmarkList.items():
-        point = {'X': p[1]['X'] * scale, 'Y': p[1]['Y'] * scale}
-        normalizedList[p[0]] =  point
+    normalizedLandmarkDict = {}
+    totalScale = avgDist / math.sqrt(var)
+    for p in imageLandmarkDict.items():
+        x = mean['X'] + (p[1]['X'] - mean['X']) * totalScale
+        y = mean['Y'] + (p[1]['Y'] - mean['Y']) * totalScale
+        normalizedLandmarkDict[p[0]] =  {'X': x, 'Y': y}
+
+    #calculate the avg sqr distance to the center.
+    mean2 = centerMass(normalizedLandmarkDict)
+    totalSqrDistance = 0
+    for p in normalizedLandmarkDict.items():
+        totalSqrDistance += pointsPairSqrDistance(mean2, p[1])
+
+    #Square STD value
+    resultAvgDist = math.sqrt(totalSqrDistance / len(imageLandmarkDict))
+
  
-    return normalizedList, scale
-
-
+    return normalizedLandmarkDict, totalScale, resultAvgDist
