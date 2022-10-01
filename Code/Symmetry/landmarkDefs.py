@@ -1,4 +1,4 @@
-
+#up-down landmarks sets of 2 points, to pronounce the vertical symmetry of a face.
 LIPS_VERTICAL_LANDMARK_SYMMTERY = [
 
                             #Center Line - 3 (Left)
@@ -44,6 +44,7 @@ LIPS_VERTICAL_LANDMARK_SYMMTERY = [
                             #(310,318)
                         ]
 
+#right-left landmarks sets of 2 points, to pronounce the Horizontal symmetry of a face.
 LIPS_HORIZONTAL_LANDMARK_SYMMTERY = [
                             #most external segment, big numbers on the right (upper point 0, lower point 17)
                             (267, 37),
@@ -87,7 +88,7 @@ LIPS_HORIZONTAL_LANDMARK_SYMMTERY = [
                             (324, 95),
                             (308, 78) ]
 
-#remove later
+#TODO: not in use, remove later
 LIPS_LANDMARKS = [ 61,
                   146,
                   91,
@@ -133,8 +134,10 @@ UP_MARKER = 9
 DOWN_MARKER = 94
 LEFT_MARKER = 78 # left lips point
 RIGHT_MARKER = 308 # right lips point
+MOUTH_UPPER_LIP_MIN_HEIGHT = 13
+MOUTH_LOWER_LIP_MAX_HEIGHT = 14
 
-FACE_GUIDE = [9, 94, 13, 14, LEFT_MARKER, RIGHT_MARKER, UP_MARKER, DOWN_MARKER ] #Middle of forhead to endn of nose ref. line + lips up and down
+FACE_GUIDE = [ MOUTH_UPPER_LIP_MIN_HEIGHT, MOUTH_LOWER_LIP_MAX_HEIGHT, LEFT_MARKER, RIGHT_MARKER, UP_MARKER, DOWN_MARKER ] #Middle of forhead to endn of nose ref. line + lips up and down
 
 MY_FACE_CONNECTIONS = frozenset([
     # Lips.

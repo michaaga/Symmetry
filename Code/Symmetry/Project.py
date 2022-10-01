@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from logging import exception
 import mediapipe as mp
 import cv2
@@ -6,7 +7,6 @@ import os
 import utils
 import Symmetry
 import landmarkDefs
-import matplotlib.pyplot as plt
 
 images = {} #global images dictionary
 NORM_VAR = 100
@@ -77,9 +77,9 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #get image coordinates Landmarks
   imageLandmarks = utils.getAllLandmarksData(rawLandmarkPoints) 
 
-  #if debug:
-  #  utils.printLandmarkPoints(imageLandmarks, 1, image)
-  #  utils.resize_and_show(image, true)
+#  if debug:
+#    utils.printLandmarkPoints(imageLandmarks, 1, image)
+#    utils.resize_and_show(image, True)
 
   #convert Image points to Normlized Scale of NORM_VAR
   normLandmarks, scale, var = Symmetry.normalizeLandmarks(imageLandmarks, NORM_VAR)
@@ -91,7 +91,7 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
     prevNormLandmarks = normLandmarks.copy()
 
-  #debug code - remove later
+  #TODO: debug code - remove later
   scale = 1
 
   #utils.printLandmarkPoints(normLandmarks, 1, image)
@@ -106,60 +106,63 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
   #find face Norm reference line
   verticalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.LEFT_MARKER]
-  verticalLineDstNorm = guideImagePointsNorm[landmarkDefs.RIGHT_MARKER]
-  verticalRefLineAngleNorm = utils.get_angle(verticalRefLineSrcNorm, verticalLineDstNorm)
+  verticalRefLineDstNorm = guideImagePointsNorm[landmarkDefs.RIGHT_MARKER]
+  verticalRefLineAngleNorm = utils.get_angle(verticalRefLineSrcNorm, verticalRefLineDstNorm)
 
   #draw Veritcal ref line from Image Landmarks
   verticalRefLineSrc = guideImagePoints[landmarkDefs.LEFT_MARKER]
-  verticalLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
-  verticalRefLineAngle = utils.get_angle(verticalRefLineSrc, verticalLineDst)
-  utils.drawLineOnImage(image, verticalRefLineSrc, verticalLineDst, scale)
+  verticalRefLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
+  verticalRefLineAngle = utils.get_angle(verticalRefLineSrc, verticalRefLineDst)
+  utils.drawLineOnImage(image, verticalRefLineSrc, verticalRefLineDst, scale)
 
 
   ## Horizontal Section ##
 
   #find and print face reference line
   horizontalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.UP_MARKER]
-  horizontalLineDstNorm = guideImagePointsNorm[landmarkDefs.DOWN_MARKER]
-  horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalLineDstNorm)
+  horizontalRefLineDstNorm = guideImagePointsNorm[landmarkDefs.DOWN_MARKER]
+  horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalRefLineDstNorm)
 
   #draw Horizontal ref line from Image Landmarks
   horizontalRefLineSrc = guideImagePoints[landmarkDefs.UP_MARKER]
-  horizontalLineDst = guideImagePoints[landmarkDefs.DOWN_MARKER]
-  horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalLineDst)
-  utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalLineDst, scale)
+  horizontalRefLineDst = guideImagePoints[landmarkDefs.DOWN_MARKER]
+  horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalRefLineDst)
+  utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalRefLineDst, scale)
 
   #find and print landmarks center
   #center = Symmetry.centerMass(landmarkImagePoints)
   #utils.annotatePoint(image, center, 'CM')
 
   #run Symmetry Alg while using the face ref line as the symmetry line.
-  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
-  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
+  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
+  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
  
-  VerticalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalLineDst, imageLandmarks, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
-  HorizontalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalLineDst, imageLandmarks, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY)
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY)
  
 
   #get mouth size + SF
-  msNorm = (guideImagePointsNorm[14]['Y'] - guideImagePointsNorm[13]['Y']) / scale
-  ms = (guideImagePoints[14]['Y'] - guideImagePoints[13]['Y']) / scale
+  msNorm = (guideImagePointsNorm[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale
+  ms = (guideImagePoints[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale
 
 
-  #add Text Info On Images
-  utils.addTextOnImage(image, name, (50, 50))
-  utils.addTextOnImage(image, 'Mouth Size (Norm)= ' + str(msNorm), (50, 100))
+  #Embedd Text labels On Images
+  utils.addTextOnImage(image, name, True)
+  utils.addTextOnImage(image, 'Mouth Size = ' + str(ms))
+  utils.addTextOnImage(image, 'Mouth Size (Norm)= ' + str(msNorm))
 
-  utils.addTextOnImage(image, 'Vertical SD   : ' + str(VerticalSDNorm), (50, 150))
-  utils.addTextOnImage(image, 'Norm Vertical Face Line Angle = ' + str(verticalRefLineAngleNorm), (50, 200))
-  utils.addTextOnImage(image, 'Vertical Face Line Angle = ' + str(verticalRefLineAngle), (50, 250))
+  utils.addTextOnImage(image, 'Vertical SD : ' + str(VerticalSD))
+  utils.addTextOnImage(image, 'Vertical SD (Norm) : ' + str(VerticalSDNorm))
+  utils.addTextOnImage(image, 'Vertical Face Line Angle (Norm) = ' + str(verticalRefLineAngleNorm))
+  utils.addTextOnImage(image, 'Vertical Face Line Angle = ' + str(verticalRefLineAngle))
 
-  utils.addTextOnImage(image, 'Horizontal SD : ' + str(HorizontalSDNorm), (50, 300))
-  utils.addTextOnImage(image, 'Norm Horizontal Face Line Angle = ' + str(horizontalRefLineAngleNorm), (50, 350))
-  utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(horizontalRefLineAngle), (50, 400))
+  utils.addTextOnImage(image, 'Horizontal SD : ' + str(HorizontalSD))
+  utils.addTextOnImage(image, 'Horizontal SD (Norm) : ' + str(HorizontalSDNorm))
+  utils.addTextOnImage(image, 'Horizontal Face Line Angle (Norm) = ' + str(horizontalRefLineAngleNorm))
+  utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(horizontalRefLineAngle))
 
   #plot the landmarks on top of the image
-  utils.printLandmarkPoints(landmarkImagePointsNorm, scale, image)
+  utils.printLandmarkPoints(landmarkImagePointsNorm, scale, image, True)
   utils.printLandmarkPoints(imageLandmarks, scale, image)
 
   return VerticalSDNorm, HorizontalSDNorm, msNorm
@@ -189,7 +192,7 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
 
-    sdVert, sdHor, ms = imageSymmetry(image, name, landmarkList)
+    sdVert, sdHor, ms = imageSymmetry(image, name, landmarkList, filterLandmarks)
 
     if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
@@ -306,15 +309,8 @@ def ProcessWebCam():
   # Destroy all the windows
   cv2.destroyAllWindows()
 
-#Debug Only Code
-
-  #degug: print All landmark markers + numbering on image.
-  #utils.printLandmarkPoints(landmarkImagePoints, image)
-
-#Run
 
 ProcessVideoFolder()
-
 #ProcessWebCam()
 
 

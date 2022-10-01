@@ -8,6 +8,9 @@ import math
 import landmarkDefs
 import Symmetry
 
+imageXtextLocation = 50
+imageYtextLocation = 0
+
 #Extract images from a single video and save to disk (optional)
 def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
 
@@ -99,8 +102,17 @@ def resize_and_show(image, showImages = False):
         cv2.destroyAllWindows()
 
 #add caption on an image
-def addTextOnImage(image, text, pos):
+def addTextOnImage(image, text, resetLocation = False):
+  global imageXtextLocation
+  global imageYtextLocation
+
+  if(resetLocation):
+    imageYtextLocation = 50
+  else:
+    imageYtextLocation = imageYtextLocation + 50 
+  
   font = cv2.FONT_HERSHEY_SIMPLEX
+  pos = (imageXtextLocation, imageYtextLocation)
   return cv2.putText(image, text, pos, font, 1, (0, 0, 0), 2, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
@@ -110,7 +122,7 @@ def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
 
 #convert point to image coordinates
 def convertPointToImageDim(landmarks, idx):
-  point = { 'X': landmarks.landmark[idx].x * Symmetry.HEIGHT, 'Y': landmarks.landmark[idx].y * Symmetry.WIDTH }
+  point = { 'X': landmarks.landmark[idx].x * Symmetry.WIDTH, 'Y': landmarks.landmark[idx].y * Symmetry.HEIGHT }
   return point
 
 #get relevant landmarks only (image coordinates)
@@ -128,12 +140,26 @@ def getAllLandmarksData(landmarks):
 
   return keypoints
 
-#debug: test method to check position of landmark points..
-def printLandmarkPoints(landmarkImagePoints, scale, img):
+#TODO debug: test method to check position of landmark points..
+def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
   font = cv2.FONT_HERSHEY_SIMPLEX
+
+  if(normSet):
+    verticalColor = (255,0,0)
+    horizontalColor = (0,0,255)
+  else:
+    verticalColor = (0,255,0)
+    horizontalColor = (125,0,125)
+
   for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMTERY:
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , (255,0,0), 0, 3)
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , (0,0,255), 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , verticalColor , 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , verticalColor, 0, 3)
+    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+    #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
+
+  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMTERY:
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , horizontalColor, 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , horizontalColor, 0, 3)
     #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
     #img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, 0.3, (255, 0, 0), 1, cv2.LINE_AA)  
 
