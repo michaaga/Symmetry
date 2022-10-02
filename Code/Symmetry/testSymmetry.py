@@ -12,7 +12,7 @@ def randX(): return random.randint(5, projectDefs.IMAGE_WIDTH - 5)
 def randY(): return random.randint(5, projectDefs.IMAGE_HEIGHT - 5)
 
 #test Symmetry distance of points
-testImgPath = 'C:\\GIT\\Symmetry\\TestImages\\test_image.jpg'
+testImgPath = 'C:\\GIT\\Symmetry\\Code\\Symmetry\\test_image.jpg'
 
 def testReflectPoint():
     global img 
@@ -37,7 +37,7 @@ def testReflectPoint():
         refBackPoint = Symmetry.reflectPoint(p1, p2, reflectedPoint)
         diff = math.sqrt(Symmetry.pointsPairSqrDistance(testPt, refBackPoint))
 
-        if(diff > 0.01):
+        if(abs(diff) > 0.01):
             return False
         
         draw = False
@@ -87,7 +87,7 @@ def testVerticalSymmetryOfLine():
     #if __debug__:
     #    utils.resize_and_show(img, True)
 
-    if(val > 0.001):
+    if(abs(val) > 0.001):
         return False
 
     return True
@@ -126,7 +126,7 @@ def testHorizontalSymmetryOfLine():
     #if __debug__:
     #    utils.resize_and_show(img, True)
 
-    if(val > 0.001):
+    if(abs(val) > 0.001):
         return False
 
     return True
@@ -162,24 +162,29 @@ def testNormalizeLandmarks():
     if  diff > 0.005:
         return False
 
-#   plt.scatter(testListXNorm, testListYNorm)
-#   plt.show()
+ #  plt.scatter(testListXNorm, testListYNorm)
+ #  plt.show()
 
     return True
 
 def runAllTests():
 
     result = True
-    for i in range(1, 100):
+    numOfIterations = 10
+    for i in range(1, numOfIterations):
         result &= testReflectPoint()
         result &= testVerticalSymmetryOfLine()
         result &= testHorizontalSymmetryOfLine()
         result &= testNormalizeLandmarks()
-        if(result == False):
-            print('Tests Failed!')
-            return
 
-    print('Tests Passed!')
+        if(result == False):
+            print('Test #' + str(i) + ' Failed!')
+            return
+        else:
+            print('Iteration #' + str(i) + '/' + str(numOfIterations) + ' Completed Successfully.')
+
+
+    print('All Tests Passed!')
 
     return
 

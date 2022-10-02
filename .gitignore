@@ -4,7 +4,6 @@ Code/Symmetry/__pycache__
 .pytest_cache
 .tmp.driveupload/*
 desktop.ini
-*.jpg
 *.ini
 *.png
 *.ini
