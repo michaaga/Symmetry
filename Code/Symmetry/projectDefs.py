@@ -1,19 +1,27 @@
-# Const Values
+# Image Const Values
 IMAGE_WIDTH = 1080
 IMAGE_HEIGHT = 1920
 IMAGE_LOAD_SKIP_CNT = 1
 IMAGE_WRITE_SKIP_CNT = 5
 
+# Normalization Factors
 SD_MAX_NORM_VALUE = 30000
 SD_MIN_NORM_VALUE = 0
-
-NORM_VAR = 100
-
 MOUTH_SIZE_MAX_NORM_VALUE = 20000
 MOUTH_SIZE_MIN_NORM_VALUE = 0
+NORM_VAR = 100
 
+#Filter Const
 SD_FILTER_CONST = 0.5
 LANDMARK_FILTER_CONST = 0.5
+
+## Landmark Markers and Tuples
+UP_MARKER = 9
+DOWN_MARKER = 94
+LEFT_MARKER = 78 # left lips point
+RIGHT_MARKER = 308 # right lips point
+MOUTH_UPPER_LIP_MIN_HEIGHT = 13
+MOUTH_LOWER_LIP_MAX_HEIGHT = 14
 
 #up-down landmarks sets of 2 points, to pronounce the vertical symmetry of a face.
 LIPS_VERTICAL_LANDMARK_SYMMETRY = [
@@ -147,14 +155,7 @@ LIPS_LANDMARKS = [ 61,
                   310,
                   415]
 
-UP_MARKER = 9
-DOWN_MARKER = 94
-LEFT_MARKER = 78 # left lips point
-RIGHT_MARKER = 308 # right lips point
-MOUTH_UPPER_LIP_MIN_HEIGHT = 13
-MOUTH_LOWER_LIP_MAX_HEIGHT = 14
-
-FACE_GUIDE = [ MOUTH_UPPER_LIP_MIN_HEIGHT, MOUTH_LOWER_LIP_MAX_HEIGHT, LEFT_MARKER, RIGHT_MARKER, UP_MARKER, DOWN_MARKER ] #Middle of forhead to endn of nose ref. line + lips up and down
+FACE_GUIDE = [ MOUTH_UPPER_LIP_MIN_HEIGHT, MOUTH_LOWER_LIP_MAX_HEIGHT, LEFT_MARKER, RIGHT_MARKER, UP_MARKER, DOWN_MARKER ] #Middle of forehead to end of nose ref. line + lips up and down
 
 MY_FACE_CONNECTIONS = frozenset([
     # Lips.

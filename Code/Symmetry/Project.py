@@ -181,6 +181,7 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
   video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30 / projectDefs.IMAGE_WRITE_SKIP_CNT, (projectDefs.IMAGE_WIDTH, projectDefs.IMAGE_HEIGHT))
 
+  global prevNormLandmarks
   prevNormLandmarks = {}
   for name, image in images.items():
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))

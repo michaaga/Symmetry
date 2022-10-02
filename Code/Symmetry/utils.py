@@ -10,16 +10,16 @@ imageYtextLocation = 0
 #Extract images from a single video and save to disk (optional)
 def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
 
-  i = 0 #Skip frams to shorten debugging.
-
   # Opens the Video file
   cap= cv2.VideoCapture(videoPath)
   
+  i = -1 #Skip frames to shorten debugging.
   while(cap.isOpened()):
       ret, frame = cap.read()
       if ret == False:
           break
 
+      i+=1
       if(i % projectDefs.IMAGE_LOAD_SKIP_CNT != 0):
         continue
 
@@ -30,9 +30,7 @@ def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
       # Using cv2.ROTATE_90_CLOCKWISE rotate
       # by 90 degrees clockwise
       frame = cv2.rotate(frame, cv2.ROTATE_180)
-
       images[fName] = frame
-      i+=1
 
       if(saveToDisk):
         cv2.imwrite(os.path.join(outPath, fName + '.jpg'), frame)
@@ -123,11 +121,11 @@ def convertPointToImageDim(landmarks, idx):
 
 #get relevant landmarks only (image coordinates)
 def getFilteredLandmarkData(landmarks, filterSet):
-  keypoints = {}
+  keyPoints = {}
   for idx in filterSet:
-      keypoints[idx] = landmarks[idx]
+      keyPoints[idx] = landmarks[idx]
 
-  return keypoints
+  return keyPoints
 
 def getAllLandmarksData(landmarks):
   keyPoints = {}

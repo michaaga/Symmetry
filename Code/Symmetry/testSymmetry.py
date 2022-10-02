@@ -134,37 +134,51 @@ def testHorizontalSymmetryOfLine():
 def testNormalizeLandmarks():
     global img 
     random.seed(10)
+    VAR = 100
+    numOfPoints = 150
 
-    points = {}
-    VAR = 300
+    srcPoints = {}
+    dstPoints = {}
+    
     testListX = []
     testListY = []
 
-    #create & plot test points
-    for i in range(1,1000):
+    testListXNorm = []
+    testListYNorm = []
+
+    #create & plot test points including center of mass
+    for i in range(1,numOfPoints):
         pt = {'X': randX(), 'Y': randY()}
-        points[i] = pt
+        srcPoints[i] = pt
         testListX.append(pt['X'])
         testListY.append(pt['Y'])
 
-#   plt.scatter(testListX, testListY)
-#   plt.show()
+    center = Symmetry.centerMass(srcPoints)
+    #plt.scatter([center['X']], [center['Y']], color = 'hotpink')
+    #plt.scatter(testListX, testListY)
+    #plt.show()
 
     #Normalize and plot normalized points
-    testListXNorm = []
-    testListYNorm = []
-    Normlist, NormScale, var1 = Symmetry.normalizeLandmarks(points, VAR)
+    Normlist, NormScale, var1 = Symmetry.normalizeLandmarks(srcPoints, VAR)
     for item in Normlist.items():
         testListXNorm.append(item[1]['X'])
         testListYNorm.append(item[1]['Y'])
 
-    diff = abs(VAR - var1)
-    if  diff > 0.005:
+    normCenter = Symmetry.centerMass(Normlist)
+
+    #plt.scatter([normCenter['X']], [normCenter['Y']], color = 'red')
+    #plt.scatter(testListXNorm, testListYNorm)
+    #plt.show()
+
+    if abs(VAR - var1) > 0.005:
+       return False
+
+    if abs(center['X'] - normCenter['X']) > 0.005:
         return False
 
- #  plt.scatter(testListXNorm, testListYNorm)
- #  plt.show()
-
+    if abs(center['Y'] - normCenter['Y']) > 0.005:
+        return False
+    
     return True
 
 def runAllTests():
