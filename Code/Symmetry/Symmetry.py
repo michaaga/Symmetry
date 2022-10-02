@@ -1,13 +1,6 @@
-import cv2
-import landmarkDefs
 import utils
-import random
 import math
-
-WIDTH = 1080
-HEIGHT = 1920
-IMAGE_LOAD_SKIP_CNT = 1
-IMAGE_WRITE_SKIP_CNT = 15
+import projectDefs
 
 #Reflect point p along line through points p0 and p1
 #param p point to reflect
@@ -26,7 +19,7 @@ def reflectPoint(p0, p1, p):
 
 #check if point is in the image range
 def inRange(pt):
-    if((pt['X'] > 0) and (pt['X'] < WIDTH) and (pt['Y'] > 0) and (pt['Y'] < HEIGHT)):
+    if((pt['X'] > 0) and (pt['X'] < projectDefs.IMAGE_WIDTH) and (pt['Y'] > 0) and (pt['Y'] < projectDefs.IMAGE_HEIGHT)):
         return True
     else:
         return False
@@ -59,7 +52,7 @@ def calcSD(p0, p1, src, dst, img = ''):
   showPoints = False
 
   if(inRange(p0_) and inRange(p1_) and showPoints == True):
-     #draw the symmetry line testpoints.
+     #draw the symmetry line test points.
      utils.annotatePoint(img, p0, str('0'), (0, 0, 0))
      utils.annotatePoint(img, p1, str('1'), (0, 0, 0))
      utils.annotatePoint(img, reflectedPoint, str('ref'), (0, 0, 0))
@@ -72,7 +65,7 @@ def calcSD(p0, p1, src, dst, img = ''):
 #calculate SD for a specific symmetry line
 def checkSymmetryOfLine(img, src, dst, points, symmetryIndexes):
 
-    #go over all symmtery matche Indexes and calculate symmetry over the line (src,dst)
+    #go over all symmetry matched Indexes and calculate symmetry over the line (src,dst)
     totalSD = 0
     for pair in symmetryIndexes:
         pt1 = pair[0]

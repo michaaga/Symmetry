@@ -1,32 +1,29 @@
-from statistics import NormalDist
-from sqlalchemy import false
 import Symmetry
 import utils
 import random
 import cv2
 import math
-import landmarkDefs
+import projectDefs
 import matplotlib.pylab as plt
 
 
 #return random values in H/W ranges
-def randX(): return random.randint(5,Symmetry.WIDTH - 5)
-def randY(): return random.randint(5,Symmetry.HEIGHT - 5)
+def randX(): return random.randint(5, projectDefs.IMAGE_WIDTH - 5)
+def randY(): return random.randint(5, projectDefs.IMAGE_HEIGHT - 5)
 
 #test Symmetry distance of points
 testImgPath = 'C:\\GIT\\Symmetry\\TestImages\\test_image.jpg'
 
 def testReflectPoint():
     global img 
-    img = cv2.imread(testImgPath)
-    
+    img = cv2.imread(testImgPath)   
     random.seed()
 
     #first point is the center of image, the second is random.
-    p1 = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
+    p1 = {'X': projectDefs.IMAGE_WIDTH / 2, 'Y': projectDefs.IMAGE_HEIGHT / 2}
     p2 = {'X': randX(), 'Y': randY()}
 
-    #draw the symmetry line testpoints.
+    #draw the symmetry line test points.
     img = cv2.drawMarker(img, ((int)(p1['X']), (int)(p1['Y'])) , (0, 255, 0), 0, 30)
     img = cv2.drawMarker(img, ((int)(p2['X']), (int)(p2['Y'])) , (0, 255, 0), 0, 30)
 
@@ -61,7 +58,7 @@ def testVerticalSymmetryOfLine():
     random.seed(10)
 
     img = cv2.imread(testImgPath)
-    center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
+    center = {'X': projectDefs.IMAGE_WIDTH / 2, 'Y': projectDefs.IMAGE_HEIGHT / 2}
     utils.annotatePoint(img, center, str('C'), (0, 255, 0))
 
     srcLinePoint = {'X': center['X'] - 400, 'Y': center['Y']}
@@ -70,14 +67,14 @@ def testVerticalSymmetryOfLine():
     #draw Symmetry line
     utils.drawLineOnImage(img, srcLinePoint, dstLinePoint)
 
-    #create test points across the horizonal line
+    #create test points across the horizontal line
     points = {}
-    for pair in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
+    for pair in projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
         pt1 = pair[0]
         pt2 = pair[1]
 
-        PointX =  random.randint(0, Symmetry.WIDTH)
-        deltaY =  random.randint(0, Symmetry.HEIGHT /2)
+        PointX =  random.randint(0, projectDefs.IMAGE_WIDTH)
+        deltaY =  random.randint(0, projectDefs.IMAGE_HEIGHT /2)
         points[pt1] = {'X': PointX, 'Y': center['Y'] + deltaY}
         points[pt2] = {'X': PointX, 'Y': center['Y'] - deltaY}
         utils.annotatePoint(img, points[pt1])
@@ -85,7 +82,7 @@ def testVerticalSymmetryOfLine():
         utils.drawLineOnImage(img, points[pt1], points[pt2])
 
     #calculate Symmetry line SD
-    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY )
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY )
 
     #if __debug__:
     #    utils.resize_and_show(img, True)
@@ -95,12 +92,12 @@ def testVerticalSymmetryOfLine():
 
     return True
 
-def testHorizonatalSymmetryOfLine():
+def testHorizontalSymmetryOfLine():
     global img 
     random.seed(10)
 
     img = cv2.imread(testImgPath)
-    center = {'X': Symmetry.WIDTH / 2, 'Y': Symmetry.HEIGHT / 2}
+    center = {'X': projectDefs.IMAGE_WIDTH / 2, 'Y': projectDefs.IMAGE_HEIGHT / 2}
     utils.annotatePoint(img, center, str('C'), (0, 255, 0))
 
     srcLinePoint = {'X': center['X'], 'Y': center['Y']  - 400}
@@ -109,14 +106,14 @@ def testHorizonatalSymmetryOfLine():
     #draw Symmetry line
     utils.drawLineOnImage(img, srcLinePoint, dstLinePoint)
 
-    #create test points across the horizonal line
+    #create test points across the horizontal line
     points = {}
-    for pair in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
+    for pair in projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
         pt1 = pair[0]
         pt2 = pair[1]
 
-        PointY =  random.randint(0, Symmetry.HEIGHT)
-        deltaX =  random.randint(0, Symmetry.WIDTH /2)
+        PointY =  random.randint(0, projectDefs.IMAGE_HEIGHT)
+        deltaX =  random.randint(0, projectDefs.IMAGE_WIDTH /2)
         points[pt1] = {'X': center['X'] + deltaX , 'Y': PointY}
         points[pt2] = {'X': center['X'] - deltaX , 'Y': PointY}
         utils.annotatePoint(img, points[pt1])
@@ -124,7 +121,7 @@ def testHorizonatalSymmetryOfLine():
         utils.drawLineOnImage(img, points[pt1], points[pt2])
 
     #calculate Symmetry line SD
-    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY )
+    val = Symmetry.checkSymmetryOfLine(img, srcLinePoint, dstLinePoint, points, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY )
 
     #if __debug__:
     #    utils.resize_and_show(img, True)
@@ -163,7 +160,7 @@ def testNormalizeLandmarks():
 
     diff = abs(VAR - var1)
     if  diff > 0.005:
-        return false
+        return False
 
 #   plt.scatter(testListXNorm, testListYNorm)
 #   plt.show()
@@ -176,7 +173,7 @@ def runAllTests():
     for i in range(1, 100):
         result &= testReflectPoint()
         result &= testVerticalSymmetryOfLine()
-        result &= testHorizonatalSymmetryOfLine()
+        result &= testHorizontalSymmetryOfLine()
         result &= testNormalizeLandmarks()
         if(result == False):
             print('Tests Failed!')
@@ -186,7 +183,7 @@ def runAllTests():
 
     return
 
-#degugging code
+#debugging code
 #*******************************
 
 #images = {}

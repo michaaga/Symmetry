@@ -6,10 +6,9 @@ import os
 
 import utils
 import Symmetry
-import landmarkDefs
+import projectDefs
 
 images = {} #global images dictionary
-NORM_VAR = 100
 
 videoFolderPath = 'C:\\GIT\\Symmetry\\TestVideos'
 #videoFolderPath = 'C:\\GIT\\Symmetry\\Videos\\Movement_sense_video'
@@ -58,7 +57,7 @@ def MpFaceMesh(image):
         mp_drawing.draw_landmarks(
         image=image,
         landmark_list=face_landmarks,
-        connections=landmarkDefs.MY_FACE_CONNECTIONS,
+        connections=projectDefs.MY_FACE_CONNECTIONS,
         landmark_drawing_spec=circleDrawingSpec,#None,
         connection_drawing_spec=mp_drawing_styles
         .get_default_face_mesh_contours_style())
@@ -79,12 +78,12 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 #    utils.resize_and_show(image, True)
 
   #convert Image points to Normalized Scale of NORM_VAR
-  normLandmarks, scale, var = Symmetry.normalizeLandmarks(imageLandmarks, NORM_VAR)
+  normLandmarks, scale, var = Symmetry.normalizeLandmarks(imageLandmarks, projectDefs.NORM_VAR)
 
   if filterLandmarks:
     global prevNormLandmarks
     if len(prevNormLandmarks) > 0:
-      utils.filterDictionary(normLandmarks, prevNormLandmarks, landmarkDefs.LANDMARK_FILTER_CONST)
+      utils.filterDictionary(normLandmarks, prevNormLandmarks, projectDefs.LANDMARK_FILTER_CONST)
 
     prevNormLandmarks = normLandmarks.copy()
 
@@ -96,19 +95,19 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
   #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
   landmarkImagePointsNorm = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
-  guideImagePoints        = utils.getFilteredLandmarkData(imageLandmarks, landmarkDefs.FACE_GUIDE)  
-  guideImagePointsNorm    = utils.getFilteredLandmarkData(normLandmarks, landmarkDefs.FACE_GUIDE)  
+  guideImagePoints        = utils.getFilteredLandmarkData(imageLandmarks, projectDefs.FACE_GUIDE)  
+  guideImagePointsNorm    = utils.getFilteredLandmarkData(normLandmarks, projectDefs.FACE_GUIDE)  
 
   ## Vertical Section ##
 
   #find face Norm reference line
-  verticalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.LEFT_MARKER]
-  verticalRefLineDstNorm = guideImagePointsNorm[landmarkDefs.RIGHT_MARKER]
+  verticalRefLineSrcNorm = guideImagePointsNorm[projectDefs.LEFT_MARKER]
+  verticalRefLineDstNorm = guideImagePointsNorm[projectDefs.RIGHT_MARKER]
   verticalRefLineAngleNorm = utils.get_angle(verticalRefLineSrcNorm, verticalRefLineDstNorm)
 
-  #draw Veritcal ref line from Image Landmarks
-  verticalRefLineSrc = guideImagePoints[landmarkDefs.LEFT_MARKER]
-  verticalRefLineDst = guideImagePoints[landmarkDefs.RIGHT_MARKER]
+  #draw Vertical ref line from Image Landmarks
+  verticalRefLineSrc = guideImagePoints[projectDefs.LEFT_MARKER]
+  verticalRefLineDst = guideImagePoints[projectDefs.RIGHT_MARKER]
   verticalRefLineAngle = utils.get_angle(verticalRefLineSrc, verticalRefLineDst)
   utils.drawLineOnImage(image, verticalRefLineSrc, verticalRefLineDst, scale)
 
@@ -116,13 +115,13 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   ## Horizontal Section ##
 
   #find and print face reference line
-  horizontalRefLineSrcNorm = guideImagePointsNorm[landmarkDefs.UP_MARKER]
-  horizontalRefLineDstNorm = guideImagePointsNorm[landmarkDefs.DOWN_MARKER]
+  horizontalRefLineSrcNorm = guideImagePointsNorm[projectDefs.UP_MARKER]
+  horizontalRefLineDstNorm = guideImagePointsNorm[projectDefs.DOWN_MARKER]
   horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalRefLineDstNorm)
 
   #draw Horizontal ref line from Image Landmarks
-  horizontalRefLineSrc = guideImagePoints[landmarkDefs.UP_MARKER]
-  horizontalRefLineDst = guideImagePoints[landmarkDefs.DOWN_MARKER]
+  horizontalRefLineSrc = guideImagePoints[projectDefs.UP_MARKER]
+  horizontalRefLineDst = guideImagePoints[projectDefs.DOWN_MARKER]
   horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalRefLineDst)
   utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalRefLineDst, scale)
 
@@ -131,15 +130,15 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #utils.annotatePoint(image, center, 'CM')
 
   #run Symmetry Alg while using the face ref line as the symmetry line.
-  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
-  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
   #get mouth size + SF
-  msNorm = abs((guideImagePointsNorm[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
-  ms = abs((guideImagePoints[landmarkDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[landmarkDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
+  msNorm = abs((guideImagePointsNorm[projectDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[projectDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
+  ms = abs((guideImagePoints[projectDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[projectDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
 
   #Embedded Text labels On Images
   utils.addTextOnImage(image, name, True)
@@ -180,7 +179,7 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
  # choose codec according to format needed, natural video frame rate is ~30 fps
   fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
-  video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30 / Symmetry.IMAGE_WRITE_SKIP_CNT, (Symmetry.WIDTH, Symmetry.HEIGHT))
+  video = cv2.VideoWriter(outPath + '\\' + filename, fourcc, 30 / projectDefs.IMAGE_WRITE_SKIP_CNT, (projectDefs.IMAGE_WIDTH, projectDefs.IMAGE_HEIGHT))
 
   prevNormLandmarks = {}
   for name, image in images.items():
@@ -189,7 +188,7 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
     sdVert, sdHor, ms = imageSymmetry(image, name, landmarkList, filterLandmarks)
 
-    if(index % Symmetry.IMAGE_WRITE_SKIP_CNT == 0):
+    if(index % projectDefs.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
       video.write(image)    #add frame to output video.
 
@@ -215,9 +214,9 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   plt.close()
 
   if normSD:
-    utils.normalizeList(MOUTH_SIZE_DATA, landmarkDefs.MOUTH_SIZE_MIN_NORM_VALUE, landmarkDefs.MOUTH_SIZE_MAX_NORM_VALUE)
-    utils.normalizeList(SD_DATA_VERT, landmarkDefs.SD_MIN_NORM_VALUE, landmarkDefs.SD_MAX_NORM_VALUE)
-    utils.normalizeList(SD_DATA_HOR, landmarkDefs.SD_MIN_NORM_VALUE, landmarkDefs.SD_MAX_NORM_VALUE)
+    utils.normalizeList(MOUTH_SIZE_DATA, projectDefs.MOUTH_SIZE_MIN_NORM_VALUE, projectDefs.MOUTH_SIZE_MAX_NORM_VALUE)
+    utils.normalizeList(SD_DATA_VERT, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
+    utils.normalizeList(SD_DATA_HOR, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
  
     plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Norm")
     plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal Norm")
@@ -232,9 +231,9 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
   #filter data
   if filterSD:
-    SD_DATA_VERT = utils.filterList(SD_DATA_VERT, landmarkDefs.SD_FILTER_CONST)
-    SD_DATA_HOR = utils.filterList(SD_DATA_HOR, landmarkDefs.SD_FILTER_CONST)
-    MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, landmarkDefs.SD_FILTER_CONST)
+    SD_DATA_VERT = utils.filterList(SD_DATA_VERT, projectDefs.SD_FILTER_CONST)
+    SD_DATA_HOR = utils.filterList(SD_DATA_HOR, projectDefs.SD_FILTER_CONST)
+    MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, projectDefs.SD_FILTER_CONST)
 
     # Plot Filtered Data
     plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Filtered")
@@ -304,7 +303,7 @@ def ProcessWebCam():
   # Destroy all the windows
   cv2.destroyAllWindows()
 
-
+# Run #
 ProcessVideoFolder()
 #ProcessWebCam()
 

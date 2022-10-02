@@ -1,12 +1,8 @@
-from tkinter import Y
-import mediapipe as mp
 import cv2
 import os
 import random
 import math
-
-import landmarkDefs
-import Symmetry
+import projectDefs
 
 imageXtextLocation = 50
 imageYtextLocation = 0
@@ -24,7 +20,7 @@ def extractImagesFromVideo(videoPath, outPath, images, saveToDisk = False):
       if ret == False:
           break
 
-      if(i % Symmetry.IMAGE_LOAD_SKIP_CNT != 0):
+      if(i % projectDefs.IMAGE_LOAD_SKIP_CNT != 0):
         continue
 
       fName = os.path.splitext(os.path.basename(videoPath))[0] + '_' + str(i)    
@@ -87,9 +83,9 @@ def random_color():
 def resize_and_show(image, showImages = False):
     h, w = image.shape[:2]
     if h < w:
-      img = cv2.resize(image, (Symmetry.WIDTH, math.floor(h/(w/Symmetry.WIDTH))))
+      img = cv2.resize(image, (projectDefs.IMAGE_WIDTH, math.floor(h/(w/projectDefs.IMAGE_WIDTH))))
     else:
-      img = cv2.resize(image, (math.floor(w/(h/Symmetry.HEIGHT)), Symmetry.HEIGHT))
+      img = cv2.resize(image, (math.floor(w/(h/projectDefs.IMAGE_HEIGHT)), projectDefs.IMAGE_HEIGHT))
 
     if(showImages):
         cv2.imshow('Image',img)
@@ -122,7 +118,7 @@ def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
 
 #convert point to image coordinates
 def convertPointToImageDim(landmarks, idx):
-  point = { 'X': landmarks.landmark[idx].x * Symmetry.WIDTH, 'Y': landmarks.landmark[idx].y * Symmetry.HEIGHT }
+  point = { 'X': landmarks.landmark[idx].x * projectDefs.IMAGE_WIDTH, 'Y': landmarks.landmark[idx].y * projectDefs.IMAGE_HEIGHT }
   return point
 
 #get relevant landmarks only (image coordinates)
@@ -134,11 +130,11 @@ def getFilteredLandmarkData(landmarks, filterSet):
   return keypoints
 
 def getAllLandmarksData(landmarks):
-  keypoints = {}
+  keyPoints = {}
   for idx in range(0, len(landmarks.landmark)):
-      keypoints[idx] = convertPointToImageDim(landmarks, idx)
+      keyPoints[idx] = convertPointToImageDim(landmarks, idx)
 
-  return keypoints
+  return keyPoints
 
 #method to check position of landmark points..
 def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
@@ -152,13 +148,13 @@ def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
     verticalColor = (0,255,0)
     horizontalColor = (125,0,125)
 
-  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
+  for x in projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , verticalColor , 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , verticalColor, 0, 3)
 #   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 #   img = cv2.putText(img, str(x[1]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 
-  for x in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
+  for x in projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , horizontalColor, 0, 3)
     img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , horizontalColor, 0, 3)
 #   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
@@ -195,14 +191,14 @@ def get_angle(p1, p2):
 
 def createLandmarkList():
   landmarkList = []
-  for x in landmarkDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
+  for x in projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
     if not (x[0] in landmarkList):
       landmarkList.append(x[0])
       
     if not (x[1] in landmarkList):
       landmarkList.append(x[1])
     
-  for y in landmarkDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
+  for y in projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
     if not (y[0] in landmarkList):
       landmarkList.append(y[0])
 
