@@ -3,5 +3,5 @@ Code/Symmetry/__pycache__
 /TestVideos/*
 .pytest_cache
 .tmp.driveupload/*
-desktop.ini
+*desktop*
 *.png
