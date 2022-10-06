@@ -1,16 +1,16 @@
 testing:
-cehck S movement vs straight in examples.
-cehck ref line sensitivty
+check S movement vs straight in examples.
+check ref line sensitivity
 
 future Ideas - 
-- allow tool to run on a live webcame inputs
+- allow tool to run on a live webcam inputs
 - add center points of image as Symmetric to themselves.
 
 V1.3 content (not released)
 1. fix SD calculations. - done
 2. test points pairing by reflecting one half to the other.
 3. scale images with wide mouth measured
-4. update ref line to include several points from forhead center.
+4. update ref line to include several points from forehead center.
 
 
 V1.2 content (released)
@@ -20,7 +20,7 @@ V1.2 content (released)
 	1.c find the normalization factor and use it for the rest of the code. - done
 
 2.create hard coded matching pairs of the lips area - done
-3.ref. line - update to have the center of forhead to the button of nose.- done
+3.ref. line - update to have the center of forehead to the button of nose.- done
 4. plot the mouth movement vs the Symmetric distance. - done
 
 

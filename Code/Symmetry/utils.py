@@ -107,12 +107,12 @@ def addTextOnImage(image, text, resetLocation = False):
   
   font = cv2.FONT_HERSHEY_SIMPLEX
   pos = (imageXtextLocation, imageYtextLocation)
-  return cv2.putText(image, text, pos, font, 1, (0, 0, 0), 2, cv2.LINE_AA)    
+  return cv2.putText(image, text, pos, font, 0.8, (0, 0, 0), 1, cv2.LINE_AA)    
 
 #draw line from (x,y) to (x,y) on an image.
-def drawLineOnImage(image, src, dest, scale = 1, color = (0,0,0)):
+def drawLineOnImage(image, src, dest, color = (0,0,0)):
   #height, width, channels = image.shape
-  image = cv2.line(image, ((int)(src['X'] / scale), (int)(src['Y'] / scale)), ((int)(dest['X'] / scale ), (int)(dest['Y'] / scale)), color, 2)
+  image = cv2.line(image, ((int)(src['X']), (int)(src['Y'])), ((int)(dest['X']), (int)(dest['Y'])), color, 1)
 
 #convert point to image coordinates
 def convertPointToImageDim(landmarks, idx):
@@ -135,7 +135,7 @@ def getAllLandmarksData(landmarks):
   return keyPoints
 
 #method to check position of landmark points..
-def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
+def printLandmarkPoints(landmarkImagePoints, img, normSet = False):
   font = cv2.FONT_HERSHEY_SIMPLEX
   fontSize = 0.4 # Was 0.3
 
@@ -147,14 +147,14 @@ def printLandmarkPoints(landmarkImagePoints, scale, img, normSet = False):
     horizontalColor = (125,0,125)
 
   for x in projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY:
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , verticalColor , 0, 3)
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , verticalColor, 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])) , verticalColor, 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])) , verticalColor, 0, 3)
 #   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 #   img = cv2.putText(img, str(x[1]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 
   for x in projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY:
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X'] / scale), (int)(landmarkImagePoints[x[0]]['Y'] / scale)) , horizontalColor, 0, 3)
-    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X'] / scale), (int)(landmarkImagePoints[x[1]]['Y'] / scale)) , horizontalColor, 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])) , horizontalColor, 0, 3)
+    img = cv2.drawMarker(img, ((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])) , horizontalColor, 0, 3)
 #   img = cv2.putText(img, str(x[0]),((int)(landmarkImagePoints[x[0]]['X']), (int)(landmarkImagePoints[x[0]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 #   img = cv2.putText(img, str(x[1]),((int)(landmarkImagePoints[x[1]]['X']), (int)(landmarkImagePoints[x[1]]['Y'])), font, fontSize, (255, 0, 0), 1, cv2.LINE_AA)  
 
@@ -183,8 +183,8 @@ def get_angle(p1, p2):
     dy = p2['Y']- p1['Y']
     theta = math.atan2(dy, dx)
     angle = math.degrees(theta)  # angle is in (-180, 180]
-    if angle < 0:
-        angle = 360 + angle
+#   if angle < 0:
+#       angle = 360 + angle
     return angle
 
 def createLandmarkList():

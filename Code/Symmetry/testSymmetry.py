@@ -159,7 +159,7 @@ def testNormalizeLandmarks():
     #plt.show()
 
     #Normalize and plot normalized points
-    Normlist, NormScale, var1 = Symmetry.normalizeLandmarks(srcPoints, VAR)
+    Normlist, var1 = Symmetry.normalizeLandmarks(srcPoints, VAR)
     for item in Normlist.items():
         testListXNorm.append(item[1]['X'])
         testListYNorm.append(item[1]['Y'])

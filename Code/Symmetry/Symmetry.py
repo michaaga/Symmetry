@@ -1,3 +1,4 @@
+from logging import exception
 import utils
 import math
 import projectDefs
@@ -120,8 +121,7 @@ def normalizeLandmarks(imageLandmarkDict, avgDist):
     resultAvgDist = math.sqrt(totalSqrDistance / len(imageLandmarkDict))
 
     if((resultAvgDist < (avgDist - 0.005)) or (resultAvgDist > (avgDist + 0.005))):
-        print("Normalization is out of 0.005 scope of Goal!")
-        return -1
+        raise exception("Normalization is out of 0.005 scope of Goal!")
 
- 
-    return normalizedLandmarkDict, totalScale, resultAvgDist
+
+    return normalizedLandmarkDict, resultAvgDist
