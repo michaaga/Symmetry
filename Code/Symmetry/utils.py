@@ -203,6 +203,13 @@ def createLandmarkList():
     if not (y[1] in landmarkList):
       landmarkList.append(y[1])
 
+  for y in projectDefs.LIPS_GUIDE_SYMMETRY_POINTS:
+    if not (y[0] in landmarkList):
+      landmarkList.append(y[0])
+
+    if not (y[1] in landmarkList):
+      landmarkList.append(y[1])    
+
   return landmarkList
 
 #return normalized value in values from normMin to normMax

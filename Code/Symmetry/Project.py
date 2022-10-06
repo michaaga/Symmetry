@@ -68,60 +68,59 @@ def MpFaceMesh(image):
 def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
   #run FaceMesh to get All landmark points
-  rawLandmarkPoints = MpFaceMesh(image)
-  
   #get image coordinates Landmarks
-  imageLandmarks = utils.getAllLandmarksData(rawLandmarkPoints) 
-
-#  if debug:
-#    utils.printLandmarkPoints(imageLandmarks, 1, image)
-#    utils.resize_and_show(image, True)
+  imageLandmarks = utils.getAllLandmarksData(MpFaceMesh(image))
+  selectedLandmarks = utils.getFilteredLandmarkData(imageLandmarks, landmarkList)
 
   #convert Image points to Normalized Scale of NORM_VAR
-  normLandmarks, scale, var = Symmetry.normalizeLandmarks(imageLandmarks, projectDefs.NORM_VAR)
+  selectedLandmarksNorm, scale, var = Symmetry.normalizeLandmarks(selectedLandmarks, projectDefs.NORM_VAR)
+  
+  center = Symmetry.centerMass(selectedLandmarks)
+  normCenter = Symmetry.centerMass(selectedLandmarksNorm)
+  utils.annotatePoint(image, center, "C", (255, 0, 0))
+  utils.annotatePoint(image, normCenter, "NC", (0, 255, 0))
+
+  # utils.printLandmarkPoints(selectedLandmarks, 1, image)
+  # utils.printLandmarkPoints(selectedLandmarksNorm, 1, image)
+  # utils.resize_and_show(image, True)
 
   if filterLandmarks:
     global prevNormLandmarks
     if len(prevNormLandmarks) > 0:
-      utils.filterDictionary(normLandmarks, prevNormLandmarks, projectDefs.LANDMARK_FILTER_CONST)
+      utils.filterDictionary(selectedLandmarksNorm, prevNormLandmarks, projectDefs.LANDMARK_FILTER_CONST)
 
-    prevNormLandmarks = normLandmarks.copy()
+    prevNormLandmarks = selectedLandmarksNorm.copy()
 
   #TODO: debug code - remove later
   scale = 1
 
-  #utils.printLandmarkPoints(normLandmarks, 1, image)
-  #utils.resize_and_show(image, true)
-
-  #get the image relevant (X,Y) points, hashmap of {idx: (X,Y)}
-  landmarkImagePointsNorm = utils.getFilteredLandmarkData(normLandmarks, landmarkList)  
-  guideImagePoints        = utils.getFilteredLandmarkData(imageLandmarks, projectDefs.FACE_GUIDE)  
-  guideImagePointsNorm    = utils.getFilteredLandmarkData(normLandmarks, projectDefs.FACE_GUIDE)  
-
   ## Vertical Section ##
 
-  #find face Norm reference line
-  verticalRefLineSrcNorm = guideImagePointsNorm[projectDefs.LEFT_MARKER]
-  verticalRefLineDstNorm = guideImagePointsNorm[projectDefs.RIGHT_MARKER]
+  #draw Norm Vertical ref line from Image Landmarks
+  verticalRefLineSrcNorm = selectedLandmarksNorm[projectDefs.LEFT_LIPS_MARKER]
+  verticalRefLineDstNorm = selectedLandmarksNorm[projectDefs.RIGHT_LIPS_MARKER]
   verticalRefLineAngleNorm = utils.get_angle(verticalRefLineSrcNorm, verticalRefLineDstNorm)
+  utils.drawLineOnImage(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, scale)
+
 
   #draw Vertical ref line from Image Landmarks
-  verticalRefLineSrc = guideImagePoints[projectDefs.LEFT_MARKER]
-  verticalRefLineDst = guideImagePoints[projectDefs.RIGHT_MARKER]
+  verticalRefLineSrc = selectedLandmarks[projectDefs.LEFT_LIPS_MARKER]
+  verticalRefLineDst = selectedLandmarks[projectDefs.RIGHT_LIPS_MARKER]
   verticalRefLineAngle = utils.get_angle(verticalRefLineSrc, verticalRefLineDst)
   utils.drawLineOnImage(image, verticalRefLineSrc, verticalRefLineDst, scale)
 
 
   ## Horizontal Section ##
 
-  #find and print face reference line
-  horizontalRefLineSrcNorm = guideImagePointsNorm[projectDefs.UP_MARKER]
-  horizontalRefLineDstNorm = guideImagePointsNorm[projectDefs.DOWN_MARKER]
+  #draw Norm Horizontal ref line from Image Landmarks
+  horizontalRefLineSrcNorm = selectedLandmarksNorm[projectDefs.LOWER_LIP_MIN]
+  horizontalRefLineDstNorm = selectedLandmarksNorm[projectDefs.UPPER_LIP_MAX]
   horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalRefLineDstNorm)
+  utils.drawLineOnImage(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, scale)
 
   #draw Horizontal ref line from Image Landmarks
-  horizontalRefLineSrc = guideImagePoints[projectDefs.UP_MARKER]
-  horizontalRefLineDst = guideImagePoints[projectDefs.DOWN_MARKER]
+  horizontalRefLineSrc = selectedLandmarks[projectDefs.LOWER_LIP_MIN]
+  horizontalRefLineDst = selectedLandmarks[projectDefs.UPPER_LIP_MAX]
   horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalRefLineDst)
   utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalRefLineDst, scale)
 
@@ -130,15 +129,15 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #utils.annotatePoint(image, center, 'CM')
 
   #run Symmetry Alg while using the face ref line as the symmetry line.
-  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, landmarkImagePointsNorm, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, landmarkImagePointsNorm, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrcNorm, verticalRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
-  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, imageLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, imageLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, horizontalRefLineSrc, horizontalRefLineDst, selectedLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, verticalRefLineSrc, verticalRefLineDst, selectedLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
  
   #get mouth size + SF
-  msNorm = abs((guideImagePointsNorm[projectDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePointsNorm[projectDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
-  ms = abs((guideImagePoints[projectDefs.MOUTH_UPPER_LIP_MIN_HEIGHT]['Y'] - guideImagePoints[projectDefs.MOUTH_LOWER_LIP_MAX_HEIGHT]['Y']) / scale)
+  msNorm = abs((selectedLandmarksNorm[projectDefs.UPPER_LIP_MIN]['Y'] - selectedLandmarksNorm[projectDefs.LOWER_LIP_MAX]['Y']) / scale)
+  ms = abs((selectedLandmarks[projectDefs.UPPER_LIP_MIN]['Y'] - selectedLandmarks[projectDefs.LOWER_LIP_MAX]['Y']) / scale)
 
   #Embedded Text labels On Images
   utils.addTextOnImage(image, name, True)
@@ -156,8 +155,8 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(horizontalRefLineAngle))
 
   #plot the landmarks on top of the image
-  utils.printLandmarkPoints(landmarkImagePointsNorm, scale, image, True)
-  utils.printLandmarkPoints(imageLandmarks, scale, image)
+  utils.printLandmarkPoints(selectedLandmarksNorm, scale, image, True)
+  utils.printLandmarkPoints(selectedLandmarks, scale, image)
 
   return VerticalSDNorm, HorizontalSDNorm, msNorm
 
@@ -216,11 +215,20 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
   if normSD:
     utils.normalizeList(MOUTH_SIZE_DATA, projectDefs.MOUTH_SIZE_MIN_NORM_VALUE, projectDefs.MOUTH_SIZE_MAX_NORM_VALUE)
-    utils.normalizeList(SD_DATA_VERT, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
-    utils.normalizeList(SD_DATA_HOR, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
- 
-    plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Norm")
-    plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal Norm")
+
+    longList = SD_DATA_HOR + SD_DATA_VERT #Normalize both lists together to keep the ratio between them.
+    utils.normalizeList(longList, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
+
+    normHOR = [] #split the lists again for display after normalization
+    normVERT = []
+    for i in range (0,len(SD_DATA_HOR)):
+        normHOR.append(longList[i])
+
+    for j in range (i+1, len(SD_DATA_HOR) + len(SD_DATA_VERT)):
+        normVERT.append(longList[j])
+        
+    plt.plot(xVal, normVERT, label = "SD Vertical Norm")
+    plt.plot(xVal, normHOR, label = "SD Horizontal Norm")
     plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening Norm")
     plt.xlabel('Image Frame')
     plt.ylabel('y - axis')
