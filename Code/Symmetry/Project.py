@@ -113,14 +113,14 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   ## Horizontal Section ##
 
   #draw Norm Horizontal ref line from Image Landmarks
-  horizontalRefLineSrcNorm = selectedLandmarksNorm[projectDefs.LOWER_LIP_MIN]
-  horizontalRefLineDstNorm = selectedLandmarksNorm[projectDefs.UPPER_LIP_MAX]
+  horizontalRefLineSrcNorm = selectedLandmarksNorm[projectDefs.LOWER_LIP_MAX]
+  horizontalRefLineDstNorm = selectedLandmarksNorm[projectDefs.UPPER_LIP_MIN]
   horizontalRefLineAngleNorm = utils.get_angle(horizontalRefLineSrcNorm, horizontalRefLineDstNorm) + 90 #offset vertical line to zero
   utils.drawLineOnImage(image, horizontalRefLineSrcNorm, horizontalRefLineDstNorm)
 
   #draw Horizontal ref line from Image Landmarks
-  horizontalRefLineSrc = selectedLandmarks[projectDefs.LOWER_LIP_MIN]
-  horizontalRefLineDst = selectedLandmarks[projectDefs.UPPER_LIP_MAX]
+  horizontalRefLineSrc = selectedLandmarks[projectDefs.LOWER_LIP_MAX]
+  horizontalRefLineDst = selectedLandmarks[projectDefs.UPPER_LIP_MIN]
   horizontalRefLineAngle = utils.get_angle(horizontalRefLineSrc, horizontalRefLineDst) + 90 #offset vertical line to zero
   utils.drawLineOnImage(image, horizontalRefLineSrc, horizontalRefLineDst)
 
@@ -146,13 +146,13 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
 
   utils.addTextOnImage(image, 'Vertical SD : ' + str(VerticalSD))
   utils.addTextOnImage(image, 'Vertical SD (Norm) : ' + str(VerticalSDNorm))
-  utils.addTextOnImage(image, 'Vertical Face Line Angle (Norm) = ' + str(verticalRefLineAngleNorm))
-  utils.addTextOnImage(image, 'Vertical Face Line Angle = ' + str(verticalRefLineAngle))
+  utils.addTextOnImage(image, 'Horizontal Face Line Angle (Norm) = ' + str(verticalRefLineAngleNorm))
+  utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(verticalRefLineAngle))
 
   utils.addTextOnImage(image, 'Horizontal SD : ' + str(HorizontalSD))
   utils.addTextOnImage(image, 'Horizontal SD (Norm) : ' + str(HorizontalSDNorm))
-  utils.addTextOnImage(image, 'Horizontal Face Line Angle (Norm) = ' + str(horizontalRefLineAngleNorm))
-  utils.addTextOnImage(image, 'Horizontal Face Line Angle = ' + str(horizontalRefLineAngle))
+  utils.addTextOnImage(image, 'Vertical Face Line Angle (Norm) = ' + str(horizontalRefLineAngleNorm))
+  utils.addTextOnImage(image, 'Vertical Face Line Angle = ' + str(horizontalRefLineAngle))
 
   #plot the landmarks on top of the image
   utils.printLandmarkPoints(selectedLandmarksNorm, image, True)

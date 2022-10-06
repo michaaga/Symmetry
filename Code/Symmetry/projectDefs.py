@@ -37,6 +37,8 @@ LIPS_VERTICAL_LANDMARK_SYMMETRY = [
     (267,314),
     (39,181),
     (269,405),
+    (40,91),
+    (270,321)
 ]
 
 #right-left landmarks sets of 2 points, to pronounce the Horizontal symmetry of a face.
@@ -45,6 +47,8 @@ LIPS_HORIZONTAL_LANDMARK_SYMMETRY = [
     (37, 267),
     (181,405),
     (39,269),
+    (40,270),
+    (91,321)
  ]
 
 #TODO: not in use, remove later
