@@ -33,8 +33,8 @@ def MpFaceMesh(image):
       static_image_mode=False,        #Was True, unrelated images (True) or as a video stream (False)
       max_num_faces=1,
       refine_landmarks=True,
-      min_detection_confidence=0.5,
-      min_tracking_confidence = 0.5) as face_mesh:
+      min_detection_confidence=0.8,
+      min_tracking_confidence = 0.9) as face_mesh:
 
     # Convert the BGR image to RGB and process it with MediaPipe Face Mesh.
     results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
@@ -128,17 +128,24 @@ def imageSymmetry(image, name, landmarkList, filterLandmarks = True):
   #find and print landmarks center
   #center = Symmetry.centerMass(landmarkImagePoints)
   #utils.annotatePoint(image, center, 'CM')
-
-  #run Symmetry Alg while using the face ref line as the symmetry line.
-  HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrcNorm, upDownRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrcNorm, leftRightRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
- 
-  HorizontalSD = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrc, upDownRefLineDst, selectedLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-  VerticalSD = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrc, leftRightRefLineDst, selectedLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
- 
   #get mouth size + SF
   msNorm = abs(selectedLandmarksNorm[projectDefs.UPPER_LIP_MIN]['Y'] - selectedLandmarksNorm[projectDefs.LOWER_LIP_MAX]['Y'])
   ms = abs(selectedLandmarks[projectDefs.UPPER_LIP_MIN]['Y'] - selectedLandmarks[projectDefs.LOWER_LIP_MAX]['Y'])
+
+  if(ms > 10 or msNorm > 10):  
+    #run Symmetry Alg while using the face ref line as the symmetry line.
+    HorizontalSDNorm = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrcNorm, upDownRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+    VerticalSDNorm = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrcNorm, leftRightRefLineDstNorm, selectedLandmarksNorm, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  
+    HorizontalSD = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrc, upDownRefLineDst, selectedLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+    VerticalSD = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrc, leftRightRefLineDst, selectedLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+  else:
+    HorizontalSDNorm = 0
+    VerticalSDNorm = 0
+    HorizontalSD = 0
+    VerticalSD = 0
+    upDownRefLineAngle = 0
+    upDownRefLineAngleNorm = 0
 
   #Embedded Text labels On Images
   utils.addTextOnImage(image, name, True)
@@ -215,16 +222,22 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   cv2.destroyAllWindows()
   #video.release()
 
-  ms_5000_10000 = MOUTH_SIZE_DATA.copy()
-  utils.normalizeList(ms_5000_10000, 5000, 10000)
+  ms_0_100 = MOUTH_SIZE_DATA.copy()
+  utils.normalizeList(ms_0_100, 0, 100)
 
   ms_0_10 = MOUTH_SIZE_DATA.copy()
   utils.normalizeList(ms_0_10, 0, 10)
 
-  # Plot Raw Data
+  ms_0_100_norm = MOUTH_SIZE_DATA_NORM.copy()
+  utils.normalizeList(ms_0_100_norm, 0, 100)
+
+  ms_0_10_norm = MOUTH_SIZE_DATA_NORM.copy()
+  utils.normalizeList(ms_0_10_norm, 0, 10)
+
+  # Plot Data
   plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
   plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
-  plt.plot(xVal, ms_5000_10000, label = "Mouth Opening")
+  plt.plot(xVal, ms_0_100, label = "Mouth Opening")
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('Orig Data SD')
@@ -233,7 +246,6 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   #plt.show()
   plt.close()
 
-  # Plot Normalized data
   plt.plot(xVal, SD_DATA_VERT_NORM, label = "SD Vertical Norm")
   plt.plot(xVal, SD_DATA_HOR_NORM, label = "SD Horizontal Norm")
   plt.plot(xVal, MOUTH_SIZE_DATA_NORM, label = "Mouth Opening Norm")
@@ -242,26 +254,36 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
   plt.title('Norm Data SD')
   plt.legend()
   plt.savefig(outPath + '\\' + filename + 'plot_Norm_Points.png')
-  #plt.show()
+  plt.show()
   plt.close()
 
-
  #plot angles
-  plt.plot(xVal, HOR_REF_ANGLE, label = "Horizontal Ref line angle Norm")
-  plt.plot(xVal, VER_REF_ANGLE, label = "Vertical Ref line angle Norm")
-  plt.plot(xVal, ms_0_10, label = "Mouth Opening [0-10]")
+  plt.plot(xVal, utils.filterList(HOR_REF_ANGLE_NORM, 0.3), label = "Horizontal Ref line angle Norm")
+  plt.plot(xVal, utils.filterList(VER_REF_ANGLE_NORM, 0.3), label = "Vertical Ref line angle Norm")
+  plt.plot(xVal, utils.filterList(ms_0_10_norm, 0.3), label = "Mouth Opening [0-10]")
+  plt.xlabel('Image Frame')
+  plt.ylabel('y - axis')
+  plt.title('orig Data Ref Angles')
+  plt.legend()
+  plt.savefig(outPath + '\\' + filename + '_Angles_Norm.png')
+  plt.show()
+  plt.close()
+
+  plt.plot(xVal, utils.filterList(HOR_REF_ANGLE, 0.3), label = "Horizontal Ref line angle Norm")
+  plt.plot(xVal, utils.filterList(VER_REF_ANGLE, 0.3), label = "Vertical Ref line angle Norm")
+  plt.plot(xVal, utils.filterList(ms_0_10, 0.3), label = "Mouth Opening [0-10]")
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('orig Data Ref Angles')
   plt.legend()
   plt.savefig(outPath + '\\' + filename + '_Angles.png')
-  #plt.show()
+  plt.show()
   plt.close()
 
   #plot angles Norm
   plt.plot(xVal, HOR_REF_ANGLE_NORM, label = "Horizontal Ref line angle Norm")
   plt.plot(xVal, VER_REF_ANGLE_NORM, label = "Vertical Ref line angle Norm")
-  plt.plot(xVal, ms_0_10, label = "Mouth Opening [0-10]")
+  plt.plot(xVal, ms_0_10_norm, label = "Mouth Opening [0-10]")
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('Norm Data Ref Angles')
@@ -283,35 +305,12 @@ def ProcessImages(videoPath, filename, outPath, images, filterLandmarks = False,
 
     for j in range (i+1, len(SD_DATA_HOR) + len(SD_DATA_VERT)):
         normVERT.append(longList[j])
-        
-    plt.plot(xVal, normVERT, label = "SD Vertical Norm")
-    plt.plot(xVal, normHOR, label = "SD Horizontal Norm")
-    plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening Norm")
-    plt.xlabel('Image Frame')
-    plt.ylabel('y - axis')
-    plt.title('SD & Mouth Size per Frame')
-    plt.legend()
-    plt.savefig(outPath + '\\' + filename + '_plot_Norm_Points_Norm_SD.png')
-    #plt.show()
-    plt.close()
 
   #filter data
   if filterSD:
     SD_DATA_VERT = utils.filterList(SD_DATA_VERT, projectDefs.SD_FILTER_CONST)
     SD_DATA_HOR = utils.filterList(SD_DATA_HOR, projectDefs.SD_FILTER_CONST)
     MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, projectDefs.SD_FILTER_CONST)
-
-    # Plot Filtered Data
-    plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical Filtered")
-    plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal Filtered")
-    plt.plot(xVal, MOUTH_SIZE_DATA, label = "Mouth Opening Filtered")
-    plt.xlabel('Image Frame')
-    plt.ylabel('y - axis')
-    plt.title('SD & Mouth Size per Frame')
-    plt.legend()
-    plt.savefig(outPath + '\\' + filename + '_plot_filter.png')
-    #plt.show()
-    plt.close()
 
   return
 
