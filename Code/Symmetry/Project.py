@@ -1,3 +1,4 @@
+import statistics
 import matplotlib.pyplot as plt
 from logging import exception
 import mediapipe as mp
@@ -97,16 +98,14 @@ def imageSymmetry(image, name, landmarkList):
 
   #find and print landmarks center
   ms = abs(selectedLandmarks[projectDefs.UPPER_LIP_MIN]['Y'] - selectedLandmarks[projectDefs.LOWER_LIP_MAX]['Y'])
-    
+
+  skipFrame = False
+
+  HorizontalSD = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrc, upDownRefLineDst, selectedLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
+  VerticalSD = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrc, leftRightRefLineDst, selectedLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+
   if(ms < projectDefs.MIN_MOUTH_SIZE_FOR_SD_CALC and projectDefs.ignoreSmallMouthSize):  
-    HorizontalSD = 0
-    VerticalSD = 0
-    upDownRefLineAngle = 0
-    leftRightRefLineAngle = 0
-    ms = 0
-  else:
-    HorizontalSD = Symmetry.checkSymmetryOfLine(image, upDownRefLineSrc, upDownRefLineDst, selectedLandmarks, projectDefs.LIPS_VERTICAL_LANDMARK_SYMMETRY)
-    VerticalSD = Symmetry.checkSymmetryOfLine(image, leftRightRefLineSrc, leftRightRefLineDst, selectedLandmarks, projectDefs.LIPS_HORIZONTAL_LANDMARK_SYMMETRY)
+    skipFrame = True
 
   #Embedded Text labels On Images
   utils.addTextOnImage(image, name, True)
@@ -119,7 +118,7 @@ def imageSymmetry(image, name, landmarkList):
   #plot the landmarks on top of the image
   utils.printLandmarkPoints(selectedLandmarks, image)
 
-  return ms, VerticalSD, HorizontalSD, leftRightRefLineAngle, upDownRefLineAngle
+  return ms, VerticalSD, HorizontalSD, leftRightRefLineAngle, upDownRefLineAngle, skipFrame
 
 #Process all images of a video
 def ProcessImages(videoPath, filename, outPath, images):
@@ -151,19 +150,31 @@ def ProcessImages(videoPath, filename, outPath, images):
     print('Processing Image: ' + name + ', '+ str(index) + '/' + str(len(images)))
     index +=1
 
-    ms, VerticalSD, HorizontalSD, leftRightRefLineAngle, upDownRefLineAngle = imageSymmetry(image, name, landmarkList)
+    ms, VerticalSD, HorizontalSD, leftRightRefLineAngle, upDownRefLineAngle, skipFrame = imageSymmetry(image, name, landmarkList)
     if(index % projectDefs.IMAGE_WRITE_SKIP_CNT == 0):
       cv2.imwrite(os.path.join(outPath, name + '.jpg'), image)
       
       if projectDefs.createVideoOutput:
         video.write(image)
 
-    #add data for plotting
-    SD_DATA_VERT.append(VerticalSD)
-    SD_DATA_HOR.append(HorizontalSD)
-    MOUTH_SIZE_DATA.append(ms)
-    HOR_REF_ANGLE.append(leftRightRefLineAngle)
-    VER_REF_ANGLE.append(upDownRefLineAngle)
+    if skipFrame == False:
+      SD_DATA_VERT.append(VerticalSD)
+      SD_DATA_HOR.append(HorizontalSD)
+      MOUTH_SIZE_DATA.append(ms)
+      HOR_REF_ANGLE.append(leftRightRefLineAngle)
+      VER_REF_ANGLE.append(upDownRefLineAngle)
+    elif len(SD_DATA_VERT) > 0 and len(SD_DATA_HOR) > 0 and len(MOUTH_SIZE_DATA) > 0 and len(HOR_REF_ANGLE) > 0 and len(VER_REF_ANGLE) > 0:  
+      SD_DATA_VERT.append(SD_DATA_VERT[-1])
+      SD_DATA_HOR.append(SD_DATA_HOR[-1])
+      MOUTH_SIZE_DATA.append(MOUTH_SIZE_DATA[-1])
+      HOR_REF_ANGLE.append(HOR_REF_ANGLE[-1])
+      VER_REF_ANGLE.append(VER_REF_ANGLE[-1])
+    else:
+      SD_DATA_VERT.append(0)
+      SD_DATA_HOR.append(0)
+      MOUTH_SIZE_DATA.append(0)
+      HOR_REF_ANGLE.append(0)
+      VER_REF_ANGLE.append(0)
 
   #close video stream
   if projectDefs.createVideoOutput:
@@ -177,12 +188,19 @@ def ProcessImages(videoPath, filename, outPath, images):
     SD_DATA_HOR = utils.filterList(SD_DATA_HOR, projectDefs.SD_FILTER_CONST)
     MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, projectDefs.SD_FILTER_CONST)
 
+  #Normalize both lists together to keep the ratio between them.
+  longList = SD_DATA_HOR + SD_DATA_VERT
+  tmpNormLongList = list(filter(lambda  a: a != min(longList), longList))
+  maxLongList = max(tmpNormLongList)
+  meanLongList = statistics.mean(tmpNormLongList)
+
+  utils.normalizeList(longList, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
+  tmpNormLongList = list(filter(lambda  a: a != min(longList), longList))
+  maxNormLongList = max(tmpNormLongList)
+  meanNormLongList = statistics.mean(longList)
+
   #print SD Normalized or Not
   if projectDefs.normalizeOutputSD:
-
-    longList = SD_DATA_HOR + SD_DATA_VERT #Normalize both lists together to keep the ratio between them.
-    utils.normalizeList(longList, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
-
     normHOR = [] #split the lists again for display after normalization
     normVERT = []
     for i in range (0,len(SD_DATA_HOR)):
@@ -192,41 +210,50 @@ def ProcessImages(videoPath, filename, outPath, images):
         normVERT.append(longList[j])
 
     ms_norm = MOUTH_SIZE_DATA.copy()
-    utils.normalizeList(ms_norm, max(longList) - 60, max(longList) -30)
+    utils.normalizeList(ms_norm, maxNormLongList - 5, maxNormLongList + 5)
 
-    plt.plot(xVal, normHOR, label = "Horizontal Ref line angle Norm")
-    plt.plot(xVal, normVERT, label = "Vertical Ref line angle Norm")
+    plt.plot(xVal, normHOR, label = "Horizontal SD Norm")
+    plt.plot(xVal, normVERT, label = "Vertical SD Norm")
     plt.plot(xVal, ms_norm, label = "Mouth Opening (relative)")
     plt.xlabel('Image Frame')
     plt.ylabel('y - axis')
-    plt.title('orig Data Ref Angles')
+    plt.title('SD Norm Data')
     plt.legend()
-    plt.savefig(outPath + '\\' + filename + '_Angles.png')
-    #plt.show()
-    plt.close()
-  else:
-    plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
-    plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
-    plt.plot(xVal, ms, label = "Mouth Opening")
-    plt.xlabel('Image Frame')
-    plt.ylabel('y - axis')
-    plt.title('Orig Data SD')
-    plt.legend()
-    plt.savefig(outPath + '\\' + filename + '_plot.png')
+    plt.ylim([maxNormLongList  - 10, maxNormLongList  + 10])
+    plt.savefig(outPath + '\\' + filename + '_SD_Norm.png')
     #plt.show()
     plt.close()
 
-
-  #print out angles
-  ms_norm_angle = MOUTH_SIZE_DATA.copy()
-  utils.normalizeList(ms, 0, 5)
-  plt.plot(xVal, HOR_REF_ANGLE, label = "Horizontal Ref line angle Norm")
-  plt.plot(xVal, VER_REF_ANGLE, label = "Vertical Ref line angle Norm")
-  plt.plot(xVal, ms_norm_angle, label = "Mouth Opening [0-10]")
+  #plot original values for comparison
+  ms_raw = MOUTH_SIZE_DATA.copy()
+  utils.normalizeList(ms_raw, maxLongList + 10, maxLongList + 20)
+  plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
+  plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
+  plt.plot(xVal, ms_raw, label = "Mouth Opening")
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
-  plt.title('orig Data Ref Angles')
+  plt.title('Orig Data SD')
   plt.legend()
+  plt.ylim([maxLongList - 30, maxLongList + 30])
+
+  plt.savefig(outPath + '\\' + filename + '_SD.png')
+  #plt.show()
+  plt.close()
+
+
+  #print Angles
+  ms_norm_angle = MOUTH_SIZE_DATA.copy()
+  angleMaxValue = max(HOR_REF_ANGLE + VER_REF_ANGLE)
+  utils.normalizeList(ms_norm_angle, angleMaxValue - 2, angleMaxValue + 2)
+  plt.plot(xVal, HOR_REF_ANGLE, label = "Horizontal Ref line angle Norm")
+  plt.plot(xVal, VER_REF_ANGLE, label = "Vertical Ref line angle Norm")
+  plt.plot(xVal, ms_norm_angle, label = "Mouth Opening [2-5 from Max]")
+  plt.xlabel('Image Frame')
+  plt.ylabel('y - axis')
+  plt.title('Ref Angles')
+  plt.legend()
+  plt.ylim([angleMaxValue - 5, angleMaxValue + 5])
+
   plt.savefig(outPath + '\\' + filename + '_Angles.png')
   #plt.show()
   plt.close()

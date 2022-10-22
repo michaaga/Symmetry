@@ -8,7 +8,7 @@ normalizeOutputSD = True       # Display: normalize SD output values for display
 filterOutputs     = False       # Display: filter SD & MS for output display
 createVideoOutput = False       # Display: join all frames to output video
 
-MIN_MOUTH_SIZE_FOR_SD_CALC = 1
+MIN_MOUTH_SIZE_FOR_SD_CALC = 2
 
 # Image Const Values
 IMAGE_WIDTH = 1080
