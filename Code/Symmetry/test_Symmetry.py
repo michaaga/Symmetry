@@ -31,7 +31,7 @@ def testReflectPoint():
     img = cv2.line(img, ((int)(p1['X']), (int)(p1['Y'])), ((int)(p2['X']), (int)(p2['Y'])), (0, 0, 0), 5)
 
     #test for 50 points
-    for i in range(1, 1000):
+    for i in range(1, 10000):
         testPt = {'X': randX(), 'Y': randY()}
         reflectedPoint =  Symmetry.reflectPoint(p1, p2, testPt)
         refBackPoint = Symmetry.reflectPoint(p1, p2, reflectedPoint)
@@ -135,7 +135,7 @@ def testNormalizeLandmarks():
     global img 
     random.seed(10)
     VAR = 100
-    numOfPoints = 150
+    numOfPoints = 1500
 
     srcPoints = {}
     dstPoints = {}
@@ -209,5 +209,5 @@ def runAllTests():
 #utils.extractImagesFromVideo('C:\\GIT\\Symmetry\\TestVideos', images, True)
 
 #run All Tests Manually
-runAllTests()
+#runAllTests()
 #testNormalizeLandmarks()

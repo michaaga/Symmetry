@@ -163,7 +163,7 @@ def printLandmarkPoints(landmarkImagePoints, img, normSet = False):
 #add text and marker on point
 def annotatePoint(img, pt, text = '', color = (0,0,0)):
   font = cv2.FONT_HERSHEY_SIMPLEX
-  img = cv2.drawMarker(img, ((int)(pt['X']), (int)(pt['Y'])) , color, 0, 30)
+  img = cv2.drawMarker(img, ((int)(pt['X']), (int)(pt['Y'])) , color, 0, 5)
   img = cv2.putText(img, text, ((int)(pt['X']), (int)(pt['Y'])), font, 0.7, color, 1, cv2.LINE_AA)  
 
 #calculate angle between two lines

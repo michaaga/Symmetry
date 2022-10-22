@@ -123,5 +123,9 @@ def normalizeLandmarks(imageLandmarkDict, avgDist):
     if((resultAvgDist < (avgDist - 0.005)) or (resultAvgDist > (avgDist + 0.005))):
         raise exception("Normalization is out of 0.005 scope of Goal!")
 
+    centersDiff = pointsPairSqrDistance(mean, mean2)
+    if abs(centersDiff) > 1:
+         raise exception("centers do not align")
+
 
     return normalizedLandmarkDict, resultAvgDist

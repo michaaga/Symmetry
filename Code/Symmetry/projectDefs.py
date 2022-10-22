@@ -1,3 +1,15 @@
+#Alg Settings
+useNormalizedLandmarks = True  # Alg: work in normalized landmarks domain, or image landmark domain.
+filterLandmarks        = True  # Alg: filter landmark points position between frames based on previous position
+ignoreSmallMouthSize   = True  # Alg: ignore small mouth size calculation to remove jitter.
+
+#Display Settings
+normalizeOutputSD = True       # Display: normalize SD output values for display
+filterOutputs     = False       # Display: filter SD & MS for output display
+createVideoOutput = False       # Display: join all frames to output video
+
+MIN_MOUTH_SIZE_FOR_SD_CALC = 1
+
 # Image Const Values
 IMAGE_WIDTH = 1080
 IMAGE_HEIGHT = 1920
