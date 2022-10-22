@@ -1,8 +1,7 @@
-Code/Symmetry/__pycache__
-/TestImages/*
-/TestVideos/*
+Code/Symmetry/__pycache__/
+/TestImages/
+/TestVideos/
 .pytest_cache
-.tmp.driveupload/*
-*desktop*
+.tmp.driveupload/
 *.png
 *.ini
