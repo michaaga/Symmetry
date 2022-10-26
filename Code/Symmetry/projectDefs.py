@@ -4,11 +4,12 @@ filterLandmarks        = True  # Alg: filter landmark points position between fr
 ignoreSmallMouthSize   = True  # Alg: ignore small mouth size calculation to remove jitter.
 
 #Display Settings
-normalizeOutputSD = True       # Display: normalize SD output values for display
-filterOutputs     = False       # Display: filter SD & MS for output display
-createVideoOutput = False       # Display: join all frames to output video
+normalizeOutputSD  = True        # Display: normalize SD output values for display
+filterAngleOutputs = True        # Display: filter SD Angles output display
+filterSDOutputs    = False       # Display: filter SD & MS for output display
+createVideoOutput  = False       # Display: join all frames to output video
 
-MIN_MOUTH_SIZE_FOR_SD_CALC = 2
+MIN_MOUTH_SIZE_FOR_SD_CALC = 0.2
 
 # Image Const Values
 IMAGE_WIDTH = 1080
@@ -37,10 +38,17 @@ UPPER_LIP_MAX = 0
 LOWER_LIP_MIN = 17
 LOWER_LIP_MAX = 14
 
+LEFT_LIPS_REF_1 = 80
+LEFT_LIPS_REF_2 = 88
+RIGHT_LIPS_REF_1 = 310
+RIGHT_LIPS_REF_2 = 318
+
 LIPS_GUIDE_SYMMETRY_POINTS = [
     (LEFT_LIPS_MARKER, RIGHT_LIPS_MARKER),
     (UPPER_LIP_MIN, LOWER_LIP_MAX),
-    (LOWER_LIP_MIN, UPPER_LIP_MAX)
+    (LOWER_LIP_MIN, UPPER_LIP_MAX),
+    (LEFT_LIPS_REF_1, LEFT_LIPS_REF_2),
+    (RIGHT_LIPS_REF_1, RIGHT_LIPS_REF_2)
 ]
 
 #up-down landmarks sets of 2 points, to pronounce the vertical symmetry of a face.
@@ -50,7 +58,16 @@ LIPS_VERTICAL_LANDMARK_SYMMETRY = [
     (39,181),
     (269,405),
     (40,91),
-    (270,321)
+    (270,321), 
+
+    (82, 87), 
+    (81, 178),
+    (80, 88),
+    (191, 95), 
+    (312, 317), 
+    (311, 402), 
+    (310, 318),
+    (324, 415)
 ]
 
 #right-left landmarks sets of 2 points, to pronounce the Horizontal symmetry of a face.
@@ -60,7 +77,16 @@ LIPS_HORIZONTAL_LANDMARK_SYMMETRY = [
     (181,405),
     (39,269),
     (40,270),
-    (91,321)
+    (91,321),
+
+    (82, 312),
+    (81, 311),
+    (80, 310),
+    (191, 415),
+    (87, 317), 
+    (178, 402), 
+    (88, 318),
+    (95, 324)
  ]
 
 #TODO: not in use, remove later

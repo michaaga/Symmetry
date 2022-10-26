@@ -1,7 +1,7 @@
-import statistics
 import matplotlib.pyplot as plt
 from logging import exception
 import mediapipe as mp
+import numpy as np
 import cv2
 import os
 
@@ -84,9 +84,13 @@ def imageSymmetry(image, name, landmarkList):
   center = Symmetry.centerMass(selectedLandmarks)
   utils.annotatePoint(image, center, "", (255, 0, 0))
 
+  leftRightRefLineSrc, leftRightRefLineDst = GetHorLineRefLinePoints(selectedLandmarks, center)
+
   #draw Vertical ref line from Image Landmarks
-  leftRightRefLineSrc = selectedLandmarks[projectDefs.LEFT_LIPS_MARKER]
-  leftRightRefLineDst = selectedLandmarks[projectDefs.RIGHT_LIPS_MARKER]
+  #leftRightRefLineSrc = selectedLandmarks[projectDefs.LEFT_LIPS_MARKER]
+  #leftRightRefLineDst = selectedLandmarks[projectDefs.RIGHT_LIPS_MARKER]
+  
+  
   leftRightRefLineAngle = utils.get_angle(leftRightRefLineSrc, leftRightRefLineDst)
   utils.drawLineOnImage(image, leftRightRefLineSrc, leftRightRefLineDst)
 
@@ -183,21 +187,25 @@ def ProcessImages(videoPath, filename, outPath, images):
   cv2.destroyAllWindows()
 
   #filter data
-  if projectDefs.filterOutputs:
+  if projectDefs.filterSDOutputs:
     SD_DATA_VERT = utils.filterList(SD_DATA_VERT, projectDefs.SD_FILTER_CONST)
     SD_DATA_HOR = utils.filterList(SD_DATA_HOR, projectDefs.SD_FILTER_CONST)
     MOUTH_SIZE_DATA = utils.filterList(MOUTH_SIZE_DATA, projectDefs.SD_FILTER_CONST)
+
+  if projectDefs.filterAngleOutputs:
+      utils.filterList(HOR_REF_ANGLE, projectDefs.SD_FILTER_CONST)
+      utils.filterList(VER_REF_ANGLE, projectDefs.SD_FILTER_CONST)
 
   #Normalize both lists together to keep the ratio between them.
   longList = SD_DATA_HOR + SD_DATA_VERT
   tmpNormLongList = list(filter(lambda  a: a != min(longList), longList))
   maxLongList = max(tmpNormLongList)
-  meanLongList = statistics.mean(tmpNormLongList)
+  minLongList = min(tmpNormLongList)
 
   utils.normalizeList(longList, projectDefs.SD_MIN_NORM_VALUE, projectDefs.SD_MAX_NORM_VALUE)
   tmpNormLongList = list(filter(lambda  a: a != min(longList), longList))
   maxNormLongList = max(tmpNormLongList)
-  meanNormLongList = statistics.mean(longList)
+  minNormLongList = min(tmpNormLongList)
 
   #print SD Normalized or Not
   if projectDefs.normalizeOutputSD:
@@ -219,22 +227,22 @@ def ProcessImages(videoPath, filename, outPath, images):
     plt.ylabel('y - axis')
     plt.title('SD Norm Data')
     plt.legend()
-    plt.ylim([maxNormLongList  - 10, maxNormLongList  + 10])
+    plt.ylim([minNormLongList  - 10, maxNormLongList  + 10])
     plt.savefig(outPath + '\\' + filename + '_SD_Norm.png')
     #plt.show()
     plt.close()
 
   #plot original values for comparison
   ms_raw = MOUTH_SIZE_DATA.copy()
-  utils.normalizeList(ms_raw, maxLongList + 10, maxLongList + 20)
-  plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
+  utils.normalizeList(ms_raw, maxLongList - 20, maxLongList + 20)
   plt.plot(xVal, SD_DATA_HOR, label = "SD Horizontal")
+  plt.plot(xVal, SD_DATA_VERT, label = "SD Vertical")
   plt.plot(xVal, ms_raw, label = "Mouth Opening")
   plt.xlabel('Image Frame')
   plt.ylabel('y - axis')
   plt.title('Orig Data SD')
   plt.legend()
-  plt.ylim([maxLongList - 30, maxLongList + 30])
+  plt.ylim([minLongList - 50, maxLongList + 50])
 
   plt.savefig(outPath + '\\' + filename + '_SD.png')
   #plt.show()
@@ -244,7 +252,9 @@ def ProcessImages(videoPath, filename, outPath, images):
   #print Angles
   ms_norm_angle = MOUTH_SIZE_DATA.copy()
   angleMaxValue = max(HOR_REF_ANGLE + VER_REF_ANGLE)
-  utils.normalizeList(ms_norm_angle, angleMaxValue - 2, angleMaxValue + 2)
+  angleMinValue = min(HOR_REF_ANGLE + VER_REF_ANGLE)
+
+  utils.normalizeList(ms_norm_angle, angleMaxValue - 10, angleMaxValue - 5)
   plt.plot(xVal, HOR_REF_ANGLE, label = "Horizontal Ref line angle Norm")
   plt.plot(xVal, VER_REF_ANGLE, label = "Vertical Ref line angle Norm")
   plt.plot(xVal, ms_norm_angle, label = "Mouth Opening [2-5 from Max]")
@@ -252,7 +262,7 @@ def ProcessImages(videoPath, filename, outPath, images):
   plt.ylabel('y - axis')
   plt.title('Ref Angles')
   plt.legend()
-  plt.ylim([angleMaxValue - 5, angleMaxValue + 5])
+  plt.ylim([angleMinValue - 5, angleMaxValue + 5])
 
   plt.savefig(outPath + '\\' + filename + '_Angles.png')
   #plt.show()
@@ -316,6 +326,19 @@ def ProcessWebCam():
   vid.release()
   # Destroy all the windows
   cv2.destroyAllWindows()
+
+def GetHorLineRefLinePoints(landmarks, centerPoint):
+  x = np.array([centerPoint['X'], landmarks[projectDefs.LEFT_LIPS_REF_1]['X'], landmarks[projectDefs.LEFT_LIPS_REF_2]['X'], landmarks[projectDefs.RIGHT_LIPS_REF_1]['X'], landmarks[projectDefs.RIGHT_LIPS_REF_2]['X']])
+  y = np.array([centerPoint['Y'], landmarks[projectDefs.LEFT_LIPS_REF_1]['Y'], landmarks[projectDefs.LEFT_LIPS_REF_2]['Y'], landmarks[projectDefs.RIGHT_LIPS_REF_1]['Y'], landmarks[projectDefs.RIGHT_LIPS_REF_2]['Y']])
+  a, b = np.polyfit(x, y, 1)
+
+  rightX = landmarks[projectDefs.RIGHT_LIPS_MARKER]['X']
+  right = {'X': rightX,'Y': a*rightX + b}
+
+  leftX = landmarks[projectDefs.LEFT_LIPS_MARKER]['X']
+  left = {'X': leftX,'Y': a*leftX + b}
+
+  return  left, right 
 
 # Run #
 ProcessVideoFolder()
