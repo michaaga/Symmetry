@@ -1,16 +1,16 @@
 testing:
-check S movement vs straight in examples.
-check ref line sensitivity
+check S movement vs straight in examples.. - done
+check ref line sensitivity. - done
 
 future Ideas - 
-- allow tool to run on a live webcam inputs
-- add center points of image as Symmetric to themselves.
+- allow tool to run on a live webcam inputs. - done
+- add center points of image as Symmetric to themselves.. - done
 
 V1.3 content (not released)
 1. fix SD calculations. - done
-2. test points pairing by reflecting one half to the other.
-3. scale images with wide mouth measured
-4. update ref line to include several points from forehead center.
+2. test points pairing by reflecting one half to the other.. - done
+3. scale images with wide mouth measured. - done
+4. update ref line to include several points from forehead center.. - done
 
 
 V1.2 content (released)

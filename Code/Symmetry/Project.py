@@ -341,8 +341,8 @@ def GetHorLineRefLinePoints(landmarks, centerPoint):
   return  left, right 
 
 # Run #
-#ProcessVideoFolder()
-ProcessWebCam()
+ProcessVideoFolder()
+#ProcessWebCam()
 
 
 
