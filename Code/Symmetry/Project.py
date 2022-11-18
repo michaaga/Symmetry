@@ -11,8 +11,8 @@ import projectDefs
 
 images = {} #global images dictionary
 
-videoFolderPath = 'C:\\GIT\\Symmetry\\TestVideos' #Movement_sense_video
-ImagesOutPath = 'C:\\GIT\\Symmetry\\TestImages' #create image landmarks output folder
+videoFolderPath = 'C:\\GIT\\Symmetry\\Data\\TestVideos' #Movement_sense_video
+ImagesOutPath = 'C:\\GIT\\Symmetry\\Data\\TestImages' #create image landmarks output folder
 
 # Load drawing_utils and drawing_styles
 mp_drawing = mp.solutions.drawing_utils 
@@ -341,8 +341,8 @@ def GetHorLineRefLinePoints(landmarks, centerPoint):
   return  left, right 
 
 # Run #
-ProcessVideoFolder()
-#ProcessWebCam()
+#ProcessVideoFolder()
+ProcessWebCam()
 
 
 

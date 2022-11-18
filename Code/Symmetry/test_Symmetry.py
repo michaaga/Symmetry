@@ -12,7 +12,7 @@ def randX(): return random.randint(5, projectDefs.IMAGE_WIDTH - 5)
 def randY(): return random.randint(5, projectDefs.IMAGE_HEIGHT - 5)
 
 #test Symmetry distance of points
-testImgPath = 'C:\\GIT\\Symmetry\\Code\\Symmetry\\test_image.jpg'
+testImgPath = 'test_image.jpg'
 
 def testReflectPoint():
     global img 
@@ -206,7 +206,7 @@ def runAllTests():
 #*******************************
 
 #images = {}
-#utils.extractImagesFromVideo('C:\\GIT\\Symmetry\\TestVideos', images, True)
+#utils.extractImagesFromVideo('C:\\GIT\\Symmetry\\Data\\TestVideos', images, True)
 
 #run All Tests Manually
 #runAllTests()
